@@ -636,3 +636,80 @@ export const SITE_URL = process.env.SITE_URL ?? 'https://example.github.io';
 | `music/Collin Lim - Luvsick.mp3` | 2.6 MB | 可接受 |
 | `img/banner-home.gif` | 1.3 MB | 首页头图，可考虑换 webp |
 | `img/01-18.jpg` | 各 150-300 KB | 已够小 |
+
+### 9.7 本地网络：git 连不上 github.com 怎么办
+
+**症状**：
+
+```
+fatal: unable to access 'https://github.com/...':
+Failed to connect to github.com port 443 after 21121 ms: Could not connect to server
+```
+
+**这不是 git 配置错，是网络到不了 GitHub 的 443。** 排查顺序：
+
+```powershell
+# 1) DNS 通不通
+Resolve-DnsName github.com -Type A
+
+# 2) 443 直连通不通
+Test-NetConnection github.com -Port 443
+
+# 3) SSH 端点通不通（经常 22 / 443 反而是通的）
+Test-NetConnection ssh.github.com -Port 443
+Test-NetConnection github.com -Port 22
+
+# 4) git 有没有配代理
+git config --global --get http.proxy
+
+# 5) 系统代理是什么（**git 不会自动用它**）
+Get-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings' |
+  Select-Object ProxyEnable,ProxyServer
+```
+
+**这台机器的实际情况**：443 直连不通，但系统代理 `127.0.0.1:7892`（猫猫云）可用，
+而且 **SSH key 已经配好并授权过了**（`ssh -T git@github.com` 返回 authenticated）。
+两种修法：
+
+**方案 A（推荐）：远端改成 SSH**
+
+```powershell
+git remote set-url origin git@github.com:<用户名>/<用户名>.github.io.git
+git ls-remote origin        # 只读测试，能列出 SHA 就通了
+```
+
+好处：不依赖代理进程活着。
+
+**方案 B：给 git 配代理**
+
+```powershell
+git config --global http.proxy  http://127.0.0.1:7892
+git config --global https.proxy http://127.0.0.1:7892
+```
+
+坏处：代理一关 git 就又不通了。取消：`git config --global --unset http.proxy`。
+
+> 关键点：**浏览器能上 GitHub ≠ git 能上**。浏览器读系统代理，命令行工具不读。
+
+### 9.8 为什么 Actions 里会有一个失败的 `pages build and deployment`
+
+推送之后你可能看到两个工作流：
+
+| 工作流 | 结果 |
+| --- | --- |
+| `Deploy to GitHub Pages`（本仓库的） | ✅ success |
+| `pages build and deployment`（GitHub 自带） | ❌ failure |
+
+失败的那个是 **Jekyll 构建**，它拿 `.astro` 文件当 Jekyll 页面解析：
+
+```
+Invalid YAML front matter in /github/workspace/src/components/BackToTop.astro
+```
+
+**它是无害的** —— 来自 Pages 的旧模式 `Deploy from a branch`，和我们的 Actions 部署是两条独立路径，
+后者优先级更高，站点照常上线。
+
+想让它别再跑：**Settings → Pages → Source 改成 `GitHub Actions`**。
+
+> `actions/configure-pages@v5` 自己会把 Source 切成 GitHub Actions，
+> 所以这个失败通常只出现一次（切换之前那次触发）。
