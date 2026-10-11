@@ -1,0 +1,78 @@
+---
+/**
+ * 文章页的「同分类文章」—— **照搬 Firefly 的 SeriesNav**。
+ *
+ * Firefly 的结构（原文照抄，只把 series 换成 categories）：
+ *   div.series-nav.rounded-xl.border.border-primary/25.overflow-hidden
+ *     button.series-nav-toggle  ← 列表图标 + "所属系列：X" + 篇数徽章 + 向下箭头
+ *     div.series-nav-content.max-h-0   ← 手风琴内容
+ *       ol > li.series-nav-row          序号方块 + 标题 + （当前篇："本文"徽章 / 否则：右箭头）
+ * 默认收起，点标题栏展开；行与行之间是虚线分隔。
+ */
+import { getCollection } from 'astro:content';
+
+interface Props {
+  currentId: string;
+  categories: string[];
+}
+
+const { currentId, categories } = Astro.props;
+
+const posts = await getCollection('blog', ({ data }) => !data.draft);
+
+const group = posts
+  .filter((post) => post.data.categories.some((category) => categories.includes(category)))
+  .sort((a, b) => a.data.pubDate.valueOf() - b.data.pubDate.valueOf());
+
+const ICON_LIST =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>';
+const ICON_CHEVRON_DOWN =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+const ICON_CHEVRON_RIGHT =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>';
+
+const seriesName = categories.join(' · ') || '未分类';
+---
+
+{
+  group.length > 1 && (
+    <div class="series-nav" data-series-nav data-open="false">
+      <button type="button" class="series-nav-toggle" data-series-toggle aria-expanded="false">
+        <span class="series-nav-icon">
+          <Fragment set:html={ICON_LIST} />
+        </span>
+        <span class="series-nav-label">
+          所属系列：<b>{seriesName}</b>
+        </span>
+        <span class="series-nav-count">{group.length} 篇</span>
+        <span class="series-nav-chevron">
+          <Fragment set:html={ICON_CHEVRON_DOWN} />
+        </span>
+      </button>
+
+      <div class="series-nav-content" data-series-content>
+        <ol class="series-nav-list">
+          {group.map((post, i) => (
+            <li>
+              {post.id === currentId ? (
+                <span class="series-nav-row is-current" aria-current="page">
+                  <span class="series-nav-index">{i + 1}</span>
+                  <span class="series-nav-title">{post.data.title}</span>
+                  <span class="series-nav-here">本文</span>
+                </span>
+              ) : (
+                <a class="series-nav-row" href={`/blog/${post.id}/`}>
+                  <span class="series-nav-index">{i + 1}</span>
+                  <span class="series-nav-title">{post.data.title}</span>
+                  <span class="series-nav-go">
+                    <Fragment set:html={ICON_CHEVRON_RIGHT} />
+                  </span>
+                </a>
+              )}
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
+  )
+}

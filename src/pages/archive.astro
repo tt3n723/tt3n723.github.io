@@ -1,0 +1,96 @@
+---
+/**
+ * 归档页 —— 形态照 Firefly 的 ArchivePanel：
+ *   按年份分组、**默认只展开最近一年**，年份行 = 年份 + 圆点 + 篇数 + 箭头，
+ *   每篇一行 = MM-DD + 虚线中轴上的点 + 分类标签 + 标题 + 右侧 #标签。
+ *
+ * 本轮新增（作者要的"操作流程"优化，也来自 Firefly）：
+ *
+ */
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+
+const fmtFull = new Intl.DateTimeFormat('zh-CN', { year: 'numeric', timeZone: 'Asia/Shanghai' });
+const fmtDay = new Intl.DateTimeFormat('zh-CN', {
+  month: '2-digit',
+  day: '2-digit',
+  timeZone: 'Asia/Shanghai',
+});
+
+const groups: { year: string; posts: typeof posts }[] = [];
+for (const post of posts) {
+  const year = fmtFull.format(post.data.pubDate);
+  const last = groups[groups.length - 1];
+  if (last && last.year === year) last.posts.push(post);
+  else groups.push({ year, posts: [post] });
+}
+
+const collapseAfterFirst = groups.length > 1;
+
+---
+
+<BaseLayout
+  title="归档"
+  description="按年份归档的全部文章"
+  bannerTitle="归档"
+  bannerSubtitle={`共 ${posts.length} 篇文章`}
+  width="wide"
+>
+  <div class="board" id="board" data-archive>
+    <div class="board-inner">
+      {
+        groups.map((group, index) => (
+          <div class="archive-year" data-archive-year>
+            <button
+              type="button"
+              class="archive-year-toggle"
+              aria-expanded={collapseAfterFirst && index > 0 ? 'false' : 'true'}
+              data-archive-toggle
+            >
+              <span class="archive-year-num">{group.year}</span>
+              <span class="archive-year-axis">
+                <span class="archive-year-dot" />
+              </span>
+              <span class="archive-year-meta">
+                <span data-archive-count>{group.posts.length} 篇</span>
+                <svg class="archive-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M6 9l6 6 6-6" />
+                </svg>
+              </span>
+            </button>
+
+            <div class="archive-year-content" hidden={collapseAfterFirst && index > 0}>
+              {group.posts.map((post) => (
+                <a
+                  class="archive-post"
+                  href={`/blog/${post.id}/`}
+                  data-archive-post
+                  data-category={post.data.categories[0] ?? ''}
+                  data-tags={post.data.tags.join('|')}
+                >
+                  <span class="archive-date">{fmtDay.format(post.data.pubDate)}</span>
+                  <span class="archive-axis">
+                    <span class="archive-dot" />
+                  </span>
+                  <span class="archive-title">
+                    {post.data.categories[0] && (
+                      <span class="archive-chip">{post.data.categories[0]}</span>
+                    )}
+                    <span class="archive-title-text">{post.data.title}</span>
+                  </span>
+                  <span class="archive-tags">
+                    {post.data.tags.map((tag) => `#${tag}`).join(' ')}
+                  </span>
+                </a>
+              ))}
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</BaseLayout>

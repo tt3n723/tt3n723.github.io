@@ -1,0 +1,927 @@
+---
+import { getCollection } from 'astro:content';
+import PostCard from '../components/PostCard.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE_HUE } from '../consts';
+
+const huePresets = [
+  { label: '靛蓝（默认）', value: 265 },
+  { label: '深海蓝', value: 235 },
+  { label: '青', value: 195 },
+  { label: '松绿', value: 160 },
+  { label: '琥珀', value: 65 },
+  { label: '橙红', value: 30 },
+  { label: '玫红', value: 350 },
+  { label: '紫', value: 300 },
+];
+
+const posts = (await getCollection('blog')).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+const sample = posts[0]!;
+
+const palettes = [
+  {
+    key: 'A',
+    name: '现状 · 灰白紫',
+    note: '现在站上这一套。中性灰底，稳妥但偏冷、偏“模板”。',
+    colors: { bg: '#f7f8fa', surface: '#ffffff', fg: '#1f2430', muted: '#6b7280', line: '#e5e7eb', accent: '#4f46e5' },
+  },
+  {
+    key: 'B',
+    name: 'Firefly · 染色底',
+    note: '页面底色带一层极淡的色相（这里是青绿），卡片纯白。不装壁纸也有氛围。',
+    colors: { bg: '#edf3f0', surface: '#ffffff', fg: '#1f2724', muted: '#6b7a74', line: '#dbe6e1', accent: '#3f9c80' },
+  },
+  {
+    key: 'C',
+    name: '暖纸 · 琥珀',
+    note: '米色纸感底 + 琥珀色强调。读长文最舒服，和你的算法笔记气质更搭。',
+    colors: { bg: '#faf7f2', surface: '#fffdf9', fg: '#2b2622', muted: '#7c7268', line: '#e8e0d4', accent: '#b45309' },
+  },
+];
+---
+
+<BaseLayout title="样式展台" description="内部 A/B 对比页" noindex width="wide">
+  <section class="mx-auto max-w-3xl py-12">
+    <p class="text-sm font-medium text-accent">内部页面 · 不进导航 · noindex</p>
+    <h1 class="mt-2 text-3xl font-bold sm:text-4xl">样式展台</h1>
+    <p class="mt-4 text-muted">
+      这一页是给你<b>做决定</b>用的，不是给读者看的。每个小节把同一个零件用几套方案并排摆出来，
+      你只需要说"A 还是 B"。
+    </p>
+    <div class="mt-6 rounded-xl border border-line bg-surface p-4 text-sm text-muted">
+      <p><b class="text-fg">A</b> = 现状（记下来的基线）　<b class="text-fg">B</b> = Firefly 的做法　<b class="text-fg">C</b> = Reimu 的做法 / 我的备选</p>
+      <p class="mt-1">某些小节只有 A 和 B——那说明第三个方案没有意义，摆上去只会增加噪音。</p>
+    </div>
+  </section>
+
+  <!-- ① 文章卡造型 -->
+  <section class="ab">
+    <h2>① 文章卡造型</h2>
+    <p class="ab-lead">看的是：封面位置、信息密度、第一眼的"个人主页感"。</p>
+    <div class="ab-grid cols-3">
+      <div class="ab-v">
+        <span class="ab-tag a">A · 现状</span>
+        <PostCard post={sample} />
+        <p class="ab-note">竖版，封面 16:9 在上，摘要两行，干净但信息量小。</p>
+      </div>
+      <div class="ab-v">
+        <span class="ab-tag b">B · Firefly 横向</span>
+        <a href="#" class="card-b">
+          <div class="card-b-text">
+            <h3>{sample.data.title}</h3>
+            <div class="card-b-meta"><span>2026/05/07</span><span>·</span><span>CSES</span></div>
+            <p>{sample.data.description}</p>
+            <div class="card-b-tags"><span>#Markdown</span><span>#CSES</span></div>
+          </div>
+          <img src={sample.data.cover} alt="" />
+        </a>
+        <p class="ab-note">横向，封面在右占 30%，左侧塞下标题+摘要+meta+标签。</p>
+      </div>
+      <div class="ab-v">
+        <span class="ab-tag c">C · Reimu 斜切</span>
+        <a href="#" class="card-c">
+          <img src={sample.data.cover} alt="" />
+          <div class="card-c-text">
+            <h3>{sample.data.title}</h3>
+            <p>{sample.data.description}</p>
+            <div class="card-c-meta"><span>2026-05-07</span><span>3.8k 字</span><span>19 分钟</span></div>
+          </div>
+        </a>
+        <p class="ab-note">封面左 40% 斜切，右侧信息行带字数/阅读时长。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ② 容器宽度 -->
+  <section class="ab">
+    <h2>② 页面容器宽度</h2>
+    <p class="ab-lead">看的是：一屏能放多少内容。按同一比例画出来。</p>
+    <div class="ab-grid cols-1">
+      <div class="ruler">
+        <div class="ruler-row"><span class="ruler-label a">A · 1024px（现状）</span><div class="ruler-bar" style="width: 64%"></div></div>
+        <div class="ruler-row"><span class="ruler-label b">B · 1600px（Firefly，xl 时收到 92vw）</span><div class="ruler-bar b" style="width: 100%"></div></div>
+        <div class="ruler-row"><span class="ruler-label c">C · 1550px（Reimu）</span><div class="ruler-bar c" style="width: 97%"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ③ 圆角与间距 -->
+  <section class="ab">
+    <h2>③ 圆角与卡片间距</h2>
+    <p class="ab-lead">看的是：紧凑堆叠还是宽松留白。这是"气质"差异最直接的一处。</p>
+    <div class="ab-grid cols-3">
+      <div class="ab-v">
+        <span class="ab-tag a">A · 16px / 24px（现状）</span>
+        <div class="mock-cards gap-a"><div class="mock-card r16"></div><div class="mock-card r16"></div></div>
+      </div>
+      <div class="ab-v">
+        <span class="ab-tag b">B · 16px / 16px（Firefly）</span>
+        <div class="mock-cards gap-b"><div class="mock-card r16"></div><div class="mock-card r16"></div></div>
+      </div>
+      <div class="ab-v">
+        <span class="ab-tag c">C · 12px / 32px（Reimu）</span>
+        <div class="mock-cards gap-c"><div class="mock-card r12"></div><div class="mock-card r12"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ④ 配色 -->
+  <section class="ab">
+    <h2>④ 全站配色</h2>
+    <p class="ab-lead">看的是：气质。B/C 都是"页面底色带一点色相"的做法——不装壁纸也有氛围。</p>
+    <div class="ab-grid cols-3">
+      {palettes.map((p) => (
+        <div class="ab-v">
+          <span class:list={['ab-tag', p.key.toLowerCase()]}>{p.key} · {p.name}</span>
+          <div class="palette" style={`background: ${p.colors.bg}`}>
+            <div class="palette-card" style={`background: ${p.colors.surface}; border-color: ${p.colors.line}`}>
+              <p style={`color: ${p.colors.fg}`} class="palette-title">算法笔记 01｜基础</p>
+              <p style={`color: ${p.colors.muted}`} class="palette-desc">时间复杂度 $O(n \log n)$，空间复杂度 $O(n)$。</p>
+              <span class="palette-btn" style={`background: ${p.colors.accent}`}>阅读</span>
+            </div>
+          </div>
+          <div class="swatches">
+            {Object.entries(p.colors).map(([name, value]) => (
+              <span class="swatch" title={`${name}: ${value}`} style={`background: ${value}`}></span>
+            ))}
+          </div>
+          <p class="ab-note">{p.note}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- ⑤ 顶部导航 -->
+  <section class="ab">
+    <h2>⑤ 顶部导航</h2>
+    <p class="ab-lead">看的是：导航是"网页的一部分"还是"浮在内容之上的一层玻璃"。下面三条都是真实渲染的，可以直接对比质感。</p>
+    <div class="nav-stack">
+      <div class="ab-v">
+        <span class="ab-tag a">A · 现状：静态一行，底部分隔线</span>
+        <div class="nav-a">
+          <b>Wizard Note</b>
+          <span class="nav-links"><a>首页</a><a>文章</a><a>搜索</a><a>关于</a></span>
+        </div>
+      </div>
+      <div class="ab-v">
+        <span class="ab-tag b">B · Firefly：悬浮胶囊 + 毛玻璃 + 底部圆角</span>
+        <div class="nav-b-wrap">
+          <div class="nav-b"><b>Wizard Note</b><span class="nav-links"><a>首页</a><a>文章</a><a>搜索</a><a>关于</a></span></div>
+        </div>
+      </div>
+      <div class="ab-v">
+        <span class="ab-tag c">C · Reimu：通栏 + 阴影 + 滚动隐藏</span>
+        <div class="nav-c"><b>Wizard Note</b><span class="nav-links"><a>首页</a><a>文章</a><a>搜索</a><a>关于</a></span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ⑥ 布局骨架 -->
+  <section class="ab">
+    <h2>⑥ 页面骨架</h2>
+    <p class="ab-lead">看的是：要不要侧边栏。这是从"博客模板"变成"个人主页"最关键的一步。</p>
+    <div class="ab-grid cols-3">
+      <div class="ab-v">
+        <span class="ab-tag a">A · 单栏（现状）</span>
+        <div class="wire">
+          <div class="wire-main"><div class="wire-block tall"></div><div class="wire-block"></div><div class="wire-block"></div></div>
+        </div>
+      </div>
+      <div class="ab-v">
+        <span class="ab-tag b">B · 左侧栏 + 正文</span>
+        <div class="wire">
+          <div class="wire-side"><div class="wire-block sm"></div><div class="wire-block sm"></div></div>
+          <div class="wire-main"><div class="wire-block"></div><div class="wire-block"></div><div class="wire-block"></div></div>
+        </div>
+      </div>
+      <div class="ab-v">
+        <span class="ab-tag c">C · 左资料 + 中列表 + 右部件</span>
+        <div class="wire">
+          <div class="wire-side"><div class="wire-block sm"></div><div class="wire-block sm"></div></div>
+          <div class="wire-main"><div class="wire-block"></div><div class="wire-block"></div></div>
+          <div class="wire-side"><div class="wire-block sm"></div><div class="wire-block sm"></div><div class="wire-block sm"></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ⑦ 代码块外观 -->
+  <section class="ab">
+    <h2>⑦ 代码块外观</h2>
+    <p class="ab-lead">
+      三个都已经是**真实的 Mac 窗口外观**（和正文里的代码块一模一样），差别只在行号与折叠。
+      点 C 的右下角箭头试试展开。
+    </p>
+    <div class="ab-grid cols-3">
+      <div class="ab-v">
+        <span class="ab-tag a">A · 普通代码块（当前真实形态）</span>
+        <div class="code-block lab-code">
+          <div class="code-head">
+            <span class="code-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="code-lang">cpp</span>
+            <span class="copy-btn">复制</span>
+          </div>
+          <pre class="code-demo"><code><span class="k">for</span> (<span class="t">int</span> i = <span class="n">0</span>; i &lt; n; i++) &#123;
+  dp[i] = <span class="n">0</span>;
+&#125;
+<span class="c">// 简洁，但长代码难定位</span></code></pre>
+        </div>
+        <p class="ab-note">三色点 + 语言名 + 复制按钮，就这一层。</p>
+      </div>
+
+      <div class="ab-v">
+        <span class="ab-tag b">B · 加行号</span>
+        <div class="code-block lab-code">
+          <div class="code-head">
+            <span class="code-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="code-lang">cpp</span>
+            <span class="copy-btn">复制</span>
+          </div>
+          <pre class="code-demo ln"><code><span class="ln">238</span><span class="k">for</span> (<span class="t">int</span> i = <span class="n">0</span>; i &lt; n; i++) &#123;
+<span class="ln">239</span>  dp[i] = <span class="n">0</span>;
+<span class="ln">240</span>&#125;
+<span class="ln">241</span><span class="c">// 讲题时能说"看第 239 行"</span></code></pre>
+        </div>
+        <p class="ab-note">行号列，讨论算法时很有用（成本：一个 Shiki transformer）。</p>
+      </div>
+
+      <div class="ab-v">
+        <span class="ab-tag c">C · 折叠代码块（403 个题解的真实形态）</span>
+        <div class="fold-code lab-code" data-fold-title="题解（C++）" data-collapsed="true">
+          <div class="code-block">
+            <div class="code-head">
+              <span class="code-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+              <span class="code-title">题解（C++）</span>
+              <span class="code-lang">cpp</span>
+              <span class="code-lines">8 行</span>
+              <span class="copy-btn">复制</span>
+              <button class="code-toggle" type="button" aria-label="展开或收起">▾</button>
+            </div>
+            <pre class="code-demo"><code><span class="k">void</span> solve() &#123;
+    <span class="t">long long</span> n;
+    cin &gt;&gt; n;
+    <span class="k">while</span> (n != <span class="n">1</span>) &#123;
+        cout &lt;&lt; n &lt;&lt; <span class="s">' '</span>;
+        n = (n % <span class="n">2</span> == <span class="n">0</span>) ? n / <span class="n">2</span> : n * <span class="n">3</span> + <span class="n">1</span>;
+    &#125;
+&#125;</code></pre>
+          </div>
+        </div>
+        <p class="ab-note">
+          <b>这就是刚改完的形态</b>：折叠标题、语言、行数、复制、展开按钮全在<b>同一条</b> Mac 标题栏里，
+          不再是「折叠一条栏 + 代码一条栏」两层。
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ⑧ hover -->
+  <section class="ab">
+    <h2>⑧ 卡片 hover 手感</h2>
+    <p class="ab-lead">把鼠标移到下面三张卡上，感受差别（触屏设备看不出效果）。</p>
+    <div class="ab-grid cols-3">
+      <div class="ab-v">
+        <span class="ab-tag a">A · 现状：上浮 2px + 阴影</span>
+        <div class="hover-a"><img src={sample.data.cover} alt="" /><b>{sample.data.title}</b></div>
+      </div>
+      <div class="ab-v">
+        <span class="ab-tag b">B · Firefly：封面放大 + 暗色遮罩</span>
+        <div class="hover-b"><img src={sample.data.cover} alt="" /><b>{sample.data.title}</b></div>
+      </div>
+      <div class="ab-v">
+        <span class="ab-tag c">C · Reimu：整卡放大 1.01 + 图 1.05</span>
+        <div class="hover-c"><img src={sample.data.cover} alt="" /><b>{sample.data.title}</b></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ⑨ 主题切换 -->
+  <section class="ab">
+    <h2>⑨ 深浅色切换动效</h2>
+    <p class="ab-lead">点三个按钮，看过渡方式的差别。</p>
+    <div class="ab-grid cols-3">
+      <div class="ab-v">
+        <span class="ab-tag a">A · 瞬间切换</span>
+        <button class="demo-btn" data-theme-mode="instant">切换试试</button>
+      </div>
+      <div class="ab-v">
+        <span class="ab-tag b">B · 颜色过渡 0.15s</span>
+        <button class="demo-btn" data-theme-mode="transition">切换试试</button>
+      </div>
+      <div class="ab-v">
+        <span class="ab-tag c">C · 圆形扩散（View Transitions）</span>
+        <button class="demo-btn" data-theme-mode="circle">切换试试</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ⑪ 色相选择器已搬到导航栏（那个调色板图标） -->
+  <section class="ab">
+    <h2>⑪ 全站色相选择器</h2>
+    <p class="ab-lead">
+      已搬到<b>导航栏右上角的调色板图标</b>里——点开就能拖色相、点预设色块。
+      整站颜色（底色、强调色、代码框、描边）由一个 <code>--hue</code> 数字驱动，
+      要让所有人生效就写进 <code>src/consts.ts</code> 的 <code>SITE_HUE</code>。
+    </p>
+  </section>
+
+  <!-- ⑩ 阅读进度 -->
+  <section class="ab">
+    <h2>⑩ 顶部阅读进度条</h2>
+    <p class="ab-lead">真站里它会固定在视口顶部，随滚动填充。这里点按钮模拟一次。</p>
+    <div class="ab-grid cols-1">
+      <div class="ab-v">
+        <div class="progress-demo"><span></span></div>
+        <button class="demo-btn" data-progress>播放一次</button>
+        <p class="ab-note">成本约 15 行 JS + 5 行 CSS。</p>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .ab {
+    padding: 2.5rem 0;
+    border-top: 1px solid var(--line);
+  }
+  .ab h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+  .ab-lead {
+    margin-top: 0.35rem;
+    font-size: 0.875rem;
+    color: var(--muted);
+  }
+  .ab-grid {
+    display: grid;
+    gap: 1.25rem;
+    margin-top: 1.5rem;
+  }
+  .ab-grid.cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .ab-grid.cols-1 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  @media (max-width: 900px) {
+    .ab-grid.cols-3 {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  .ab-v {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    min-width: 0;
+  }
+  .ab-tag {
+    align-self: flex-start;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.2rem 0.55rem;
+    border-radius: 9999px;
+  }
+  .ab-tag.a {
+    background: #e5e7eb;
+    color: #374151;
+  }
+  .ab-tag.b {
+    background: #d7efe6;
+    color: #14684f;
+  }
+  .ab-tag.c {
+    background: #fbe3e6;
+    color: #a8324a;
+  }
+  .ab-note {
+    font-size: 0.75rem;
+    line-height: 1.5;
+    color: var(--muted);
+  }
+
+  /* ---- ① 卡片造型 ---- */
+  .card-b {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    border: 1px solid var(--line);
+    border-radius: 1rem;
+    background: var(--surface);
+    text-decoration: none !important;
+    color: inherit;
+    min-height: 11rem;
+  }
+  .card-b-text {
+    flex: 1;
+    min-width: 0;
+  }
+  .card-b-text h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+  .card-b-meta,
+  .card-c-meta {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.4rem;
+    font-size: 0.7rem;
+    color: var(--muted);
+  }
+  .card-b-text p {
+    margin-top: 0.4rem;
+    font-size: 0.8rem;
+    color: var(--muted);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .card-b-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: 0.6rem;
+    font-size: 0.68rem;
+    color: var(--accent);
+  }
+  .card-b img {
+    width: 30%;
+    height: auto;
+    border-radius: 0.75rem;
+    object-fit: cover;
+  }
+  .card-c {
+    display: flex;
+    overflow: hidden;
+    border: 1px solid #f0c9cf;
+    border-radius: 0.75rem;
+    background: var(--surface);
+    text-decoration: none !important;
+    color: inherit;
+    min-height: 11rem;
+  }
+  .card-c img {
+    width: 40%;
+    object-fit: cover;
+    clip-path: polygon(0 0, 92% 0, 100% 100%, 0 100%);
+  }
+  .card-c-text {
+    flex: 1;
+    min-width: 0;
+    padding: 1rem 1rem 1rem 0.25rem;
+  }
+  .card-c-text h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #c0394f;
+    line-height: 1.4;
+  }
+  .card-c-text p {
+    margin-top: 0.4rem;
+    font-size: 0.8rem;
+    color: var(--muted);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .card-c-meta {
+    margin-top: auto;
+    padding-top: 0.6rem;
+  }
+
+  /* ---- ② 标尺 ---- */
+  .ruler-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0.6rem 0;
+  }
+  .ruler-label {
+    width: 17rem;
+    flex-shrink: 0;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+  .ruler-bar {
+    height: 1.5rem;
+    border-radius: 0.375rem;
+    background: repeating-linear-gradient(45deg, #d1d5db, #d1d5db 6px, #e5e7eb 6px, #e5e7eb 12px);
+  }
+  .ruler-bar.b {
+    background: repeating-linear-gradient(45deg, #86d0b6, #86d0b6 6px, #b8e3d4 6px, #b8e3d4 12px);
+  }
+  .ruler-bar.c {
+    background: repeating-linear-gradient(45deg, #eaa7b2, #eaa7b2 6px, #f5ccd2 6px, #f5ccd2 12px);
+  }
+
+  /* ---- ③ 圆角间距 ---- */
+  .mock-cards {
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    border: 1px dashed var(--line);
+    border-radius: 0.5rem;
+  }
+  .gap-a { gap: 1.5rem; }
+  .gap-b { gap: 1rem; }
+  .gap-c { gap: 2rem; }
+  .mock-card {
+    height: 4rem;
+    background: var(--surface);
+    border: 1px solid var(--line);
+  }
+  .mock-card.r16 { border-radius: 1rem; }
+  .mock-card.r12 { border-radius: 0.75rem; }
+
+  /* ---- ④ 配色 ---- */
+  .palette {
+    padding: 1.25rem;
+    border-radius: 1rem;
+    border: 1px solid var(--line);
+  }
+  .palette-card {
+    padding: 1rem;
+    border-radius: 0.75rem;
+    border: 1px solid;
+  }
+  .palette-title {
+    font-weight: 600;
+    font-size: 1rem;
+  }
+  .palette-desc {
+    margin-top: 0.35rem;
+    font-size: 0.8rem;
+    line-height: 1.6;
+  }
+  .palette-btn {
+    display: inline-block;
+    margin-top: 0.75rem;
+    padding: 0.35rem 0.9rem;
+    border-radius: 0.5rem;
+    color: #fff;
+    font-size: 0.8rem;
+  }
+  .swatches {
+    display: flex;
+    gap: 0.35rem;
+  }
+  .swatch {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 0.375rem;
+    border: 1px solid var(--line);
+  }
+
+  /* ---- ⑤ 导航 ---- */
+  .nav-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+  }
+  .nav-a,
+  .nav-c {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.9rem 1rem;
+    background: var(--bg);
+  }
+  .nav-a {
+    border-bottom: 1px solid var(--line);
+  }
+  .nav-c {
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  }
+  .nav-b-wrap {
+    padding: 0.6rem;
+    border-radius: 1.25rem;
+    background: linear-gradient(120deg, #cfe8f5, #e6d9f2 60%, #f6dfe6);
+  }
+  .nav-b {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.9rem 1.1rem;
+    border-radius: 0 0 0.75rem 0.75rem;
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(12px) saturate(1.5);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 1px 0 rgba(0, 0, 0, 0.06), 0 4px 16px rgba(0, 0, 0, 0.1);
+  }
+  .nav-links {
+    display: flex;
+    gap: 0.75rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  /* ---- ⑥ 骨架 ---- */
+  .wire {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border: 1px solid var(--line);
+    border-radius: 0.75rem;
+    background: var(--bg);
+    min-height: 12rem;
+  }
+  .wire-side {
+    flex: 0 0 26%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .wire-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .wire-block {
+    height: 2.5rem;
+    border-radius: 0.5rem;
+    background: #ffffff;
+    border: 1px solid var(--line);
+  }
+  .wire-block.tall {
+    height: 4.5rem;
+  }
+  .wire-block.sm {
+    height: 1.75rem;
+  }
+
+  /* ---- ⑦ 代码块 ---- */
+  .code-demo {
+    margin: 0;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--line);
+    border-radius: 0.75rem;
+    background: #f6f8fa;
+    color: #24292e;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    line-height: 1.7;
+    overflow-x: auto;
+  }
+  .code-demo.ln {
+    padding-left: 0.6rem;
+  }
+  /* /lab 里的代码 mock 用真实窗口外壳包着，所以内层 pre 要去掉自己的边框和底色 */
+  .code-block .code-demo {
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    background: var(--code-bg);
+    color: var(--fg);
+  }
+  .lab-code {
+    margin: 0;
+  }
+  /* mock 里的 token 颜色要跟着深浅色走 */
+  html.dark .code-demo .k { color: #ff7b72; }
+  html.dark .code-demo .t { color: #ffa657; }
+  html.dark .code-demo .n { color: #79c0ff; }
+  html.dark .code-demo .c { color: #8b949e; }
+  html.dark .code-demo .ln { color: #6e7681; }
+  .code-demo .ln {
+    display: inline-block;
+    width: 1.6rem;
+    color: #9aa4b2;
+    user-select: none;
+  }
+  .code-demo .k { color: #d73a49; }
+  .code-demo .t { color: #6f42c1; }
+  .code-demo .n { color: #005cc5; }
+  .code-demo .c { color: #6a737d; }
+  .code-collapse {
+    border: 1px solid var(--line);
+    border-radius: 0.75rem;
+    overflow: hidden;
+  }
+  .code-collapse summary {
+    padding: 0.5rem 0.9rem;
+    font-size: 0.75rem;
+    color: var(--accent);
+    background: #f6f8fa;
+    cursor: pointer;
+    border-bottom: 1px solid var(--line);
+  }
+  .code-collapse .code-demo {
+    border: 0;
+    border-radius: 0;
+  }
+
+  /* ---- ⑧ hover ---- */
+  .hover-a,
+  .hover-b,
+  .hover-c {
+    border: 1px solid var(--line);
+    border-radius: 1rem;
+    background: var(--surface);
+    overflow: hidden;
+    cursor: pointer;
+  }
+  .hover-a,
+  .hover-b,
+  .hover-c b {
+    display: block;
+  }
+  .hover-a img,
+  .hover-b img,
+  .hover-c img {
+    width: 100%;
+    height: 8rem;
+    object-fit: cover;
+  }
+  .hover-a b,
+  .hover-b b,
+  .hover-c b {
+    padding: 0.7rem;
+    font-size: 0.85rem;
+  }
+  .hover-a {
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .hover-a:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  }
+  .hover-b {
+    position: relative;
+  }
+  .hover-b img {
+    transition: transform 0.3s;
+  }
+  .hover-b:hover img {
+    transform: scale(1.1);
+  }
+  .hover-b::after {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 8rem;
+    background: rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+  }
+  .hover-b:hover::after {
+    opacity: 1;
+  }
+  .hover-c {
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  .hover-c:hover {
+    transform: scale(1.01);
+    box-shadow: 0 0 10px 4px rgba(0, 0, 0, 0.08);
+  }
+  .hover-c img {
+    transition: transform 0.3s;
+  }
+  .hover-c:hover img {
+    transform: scale(1.05);
+  }
+
+  /* ---- ⑨⑩ 演示控件 ---- */
+  .demo-btn {
+    align-self: flex-start;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--line);
+    border-radius: 0.5rem;
+    background: var(--surface);
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+  .demo-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .progress-demo {
+    height: 3px;
+    width: 100%;
+    background: var(--line);
+    border-radius: 9999px;
+    overflow: hidden;
+  }
+  .progress-demo span {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: var(--accent);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 60%, transparent);
+  }
+
+  /* 切换动效演示用：只在 /lab 生效 */
+  .theme-anim,
+  .theme-anim * {
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+
+  /* ---- ⑪ 色相滑杆 ---- */
+  .hue-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .hue-range {
+    flex: 1;
+    height: 0.75rem;
+    border-radius: 9999px;
+    appearance: none;
+    background: linear-gradient(
+      to right,
+      oklch(0.6 0.17 0),
+      oklch(0.6 0.17 60),
+      oklch(0.6 0.17 120),
+      oklch(0.6 0.17 180),
+      oklch(0.6 0.17 240),
+      oklch(0.6 0.17 300),
+      oklch(0.6 0.17 360)
+    );
+    cursor: pointer;
+  }
+  .hue-range::-webkit-slider-thumb {
+    appearance: none;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 9999px;
+    background: var(--surface);
+    border: 3px solid var(--accent);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    cursor: grab;
+  }
+  .hue-value {
+    min-width: 3.5rem;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .hue-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+</style>
+
+<script is:inline>
+  // ⑨ 三种主题切换方式对比
+  document.querySelectorAll('[data-theme-mode]').forEach(function (button) {
+    button.addEventListener('click', function () {
+      const mode = button.getAttribute('data-theme-mode');
+      const root = document.documentElement;
+      const toDark = !root.classList.contains('dark');
+
+      const apply = function () {
+        // 直接写 class + localStorage，和正式站的主题逻辑保持一致
+        localStorage.setItem('theme', toDark ? 'dark' : 'light');
+        root.classList.toggle('dark', toDark);
+      };
+
+      if (mode === 'instant') {
+        root.classList.add('theme-anim-none');
+        apply();
+        setTimeout(function () { root.classList.remove('theme-anim-none'); }, 100);
+      } else if (mode === 'transition') {
+        apply();
+      } else if (document.startViewTransition) {
+        document.startViewTransition(apply);
+      } else {
+        apply();
+      }
+    });
+  });
+
+  // ⑦ 里那几个 mock 折叠窗口的展开/收起（正文里的真代码块由 copy-code.ts 处理）
+  document.querySelectorAll('.fold-code .code-toggle').forEach(function (button) {
+    button.addEventListener('click', function () {
+      const fold = button.closest('.fold-code');
+      if (!fold) return;
+      const collapsed = fold.getAttribute('data-collapsed') === 'true';
+      fold.setAttribute('data-collapsed', collapsed ? 'false' : 'true');
+      button.setAttribute('aria-expanded', String(collapsed));
+    });
+  });
+
+
+  // ⑩ 阅读进度条演示
+  const progressButton = document.querySelector('[data-progress]');
+  if (progressButton) {
+    const bar = document.querySelector('.progress-demo span');
+    progressButton.addEventListener('click', function () {
+      if (!bar) return;
+      bar.style.transition = 'none';
+      bar.style.width = '0%';
+      void bar.offsetWidth;
+      bar.style.transition = 'width 2.5s cubic-bezier(0.1, 0.05, 0.1, 1)';
+      bar.style.width = '100%';
+    });
+  }
+</script>

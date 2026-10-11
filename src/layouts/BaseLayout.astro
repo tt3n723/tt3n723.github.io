@@ -1,0 +1,214 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import BackToTop from '../components/BackToTop.astro';
+import SearchModal from '../components/SearchModal.astro';
+import Banner from '../components/Banner.astro';
+import 'katex/dist/katex.min.css';
+import 'katex/dist/contrib/mhchem.mjs'; // 支持 \ce{} 化学式
+import '../styles/global.css';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import { SITE_DESCRIPTION, SITE_HUE, SITE_TITLE, SITE_URL } from '../consts';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** 给 /lab 这类内部页面用：告诉搜索引擎不要收录 */
+  noindex?: boolean;
+  /**
+   * 容器宽度：
+   *   default —— 正文/单页，1024px
+   *   wide    —— 列表页，铺满
+   *   post    —— 文章页，正文列 + 右侧目录
+   */
+  width?: 'default' | 'wide' | 'post';
+  /** 分享图（og:image），文章页传封面 */
+  image?: string;
+  /** og:type */
+  kind?: 'website' | 'article';
+  /** 文章发布时间，喂给 article:published_time */
+  publishedTime?: string;
+  /** 头图上的大字，默认站点名 */
+  bannerTitle?: string;
+  /** 头图上的小字 */
+  bannerSubtitle?: string;
+  /** 头图高度，默认 100vh */
+  bannerHeight?: string;
+  /** 头图换成别的图（关于页用 banner-about.jpg） */
+  bannerImage?: string;
+  /** 头图标题打字机（首页用） */
+  bannerTyped?: boolean;
+}
+
+const {
+  title,
+  description = SITE_DESCRIPTION,
+  noindex = false,
+  width = 'default',
+  image,
+  kind = 'website',
+  publishedTime,
+  bannerTitle,
+  bannerSubtitle,
+  bannerHeight,
+  bannerImage,
+  bannerTyped,
+} = Astro.props;
+
+const ogImage = image ? new URL(image, SITE_URL).href : undefined;
+
+const containerClass = {
+  default: 'max-w-5xl',
+  wide: 'max-w-[100rem]',
+  post: 'max-w-[80rem]',
+}[width];
+const pageTitle = title ? `${title} | ${SITE_TITLE}` : SITE_TITLE;
+const canonical = new URL(Astro.url.pathname, SITE_URL).href;
+---
+
+<!doctype html>
+<html lang="zh-CN" style={`--hue: ${SITE_HUE}`}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate" type="application/rss+xml" title={SITE_TITLE} href="/rss.xml" />
+    <meta name="generator" content={Astro.generator} />
+    <ClientRouter />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+
+    <!-- 分享卡片。宽度高度按站内封面统一 16:9 的比例给，
+         有些平台缺这两个属性就不渲染大图 -->
+    <meta property="og:site_name" content={SITE_TITLE} />
+    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:type" content={kind} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+    {
+      ogImage && (
+        <>
+          <meta property="og:image" content={ogImage} />
+          <meta property="og:image:width" content="1200" />
+          <meta property="og:image:height" content="675" />
+          <meta property="og:image:alt" content={title ?? SITE_TITLE} />
+          <meta name="twitter:image" content={ogImage} />
+          <meta name="twitter:image:alt" content={title ?? SITE_TITLE} />
+        </>
+      )
+    }
+    {publishedTime && <meta property="article:published_time" content={publishedTime} />}
+    <!--
+      主题初始化必须放在 <head> 里同步执行，否则暗色模式会闪一下白屏（FOUC）。
+      所以这里用 is:inline，不参与打包。
+    -->
+    <script is:inline>
+      (function () {
+        // 给 <html> 打个 js 标记：CSS 里凡是"需要 JS 才能用"的样式都挂在它下面，
+        // 这样禁用 JS 时页面会退化成"全部展开"的安全形态，而不是藏起来打不开。
+        document.documentElement.classList.add('js');
+        try {
+          var stored = localStorage.getItem('theme') || 'auto';
+          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var dark = stored === 'dark' || (stored === 'auto' && prefersDark);
+          document.documentElement.classList.toggle('dark', dark);
+
+          // /lab 的色相滑杆会把选择存在 localStorage.hue，这里优先用它，
+          // 这样你挑选色相时可以带着它到处翻页。点「恢复默认」即可清除。
+          var hue = localStorage.getItem('hue');
+          if (hue) document.documentElement.style.setProperty('--hue', hue);
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body class="min-h-screen bg-bg font-sans text-fg antialiased">
+    <canvas id="fireworks" class="pointer-events-none fixed inset-0 z-50" aria-hidden="true"></canvas>
+    <Header />
+
+    <Banner
+      title={bannerTitle}
+      subtitle={bannerSubtitle}
+      height={bannerHeight}
+      image={bannerImage}
+      typed={bannerTyped}
+    />
+
+    <a href="#main" class="skip-link">跳到主内容</a>
+    <main id="main" class:list={['mx-auto w-full px-4 pb-24', containerClass]}>
+      <slot />
+    </main>
+    <SearchModal />
+
+    <BackToTop />
+
+    <Footer />
+    <script>
+      import { initHeader } from '../scripts/header';
+      import { initTheme } from '../scripts/theme';
+      import { initCopyCode } from '../scripts/copy-code';
+      import { initTabs } from '../scripts/tabs';
+      import { initToc } from '../scripts/toc';
+      import { initMermaid } from '../scripts/mermaid';
+      import { initLqip } from '../scripts/lqip';
+      import { initMusic } from '../scripts/music';
+      import { initLightbox } from '../scripts/lightbox';
+      import { initReveal } from '../scripts/reveal';
+      import { initBanner } from '../scripts/banner';
+      import { initArchive } from '../scripts/archive';
+      import { initSeriesNav } from '../scripts/series-nav';
+      import { initSearchModal } from '../scripts/search-modal';
+      import { initBackToTop } from '../scripts/back-to-top';
+      import { initTyped } from '../scripts/typed';
+      import { initFireworks } from '../scripts/fireworks';
+
+      // 用 astro:page-load 统一驱动：
+      //   - 首次加载会触发一次
+      //   - 每次客户端路由切换（ClientRouter）之后再触发一次
+      // 这样页面换掉之后，新的 DOM 会被重新挂上事件（导航栏本身也会被替换）。
+      // lastPath 防止同一页面被初始化两次（首次加载时两个时机都会到）。
+      let lastPath = '';
+
+      function boot() {
+        if (location.pathname === lastPath) return;
+        lastPath = location.pathname;
+
+        // ClientRouter 换页时会把新页面的 <html> 属性搬过来，
+        // 但内联脚本不会重跑，所以 .js 这个类得自己补回来——
+        // 少了它，所有"渐进增强"的初始隐藏状态就会失效。
+        document.documentElement.classList.add('js');
+
+        initTheme(); // 明暗一键切换的绑定
+        initHeader();
+        initCopyCode();
+        initTabs();
+        initToc();
+        initMermaid();
+        initLqip();
+        initMusic();
+        initLightbox();
+        initReveal();
+        initBanner();
+        initArchive();
+        initSeriesNav();
+        initSearchModal();
+        initBackToTop();
+        initTyped();
+      }
+
+      initFireworks(); // 只挂在 document 上，切页后依然有效，不需要重跑
+      document.addEventListener('astro:page-load', boot);
+      // 兜底：万一 ClientRouter 没生效（astro:page-load 不触发），首屏也要能跑
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', boot, { once: true });
+      } else {
+        boot();
+      }
+    </script>
+  </body>
+</html>

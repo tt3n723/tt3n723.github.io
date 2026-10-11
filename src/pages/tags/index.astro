@@ -1,0 +1,80 @@
+---
+/**
+ * 标签总览 = **两套都有**（作者要的）：
+ *   ① 字号云 —— 照搬旧站 Hexo：fish 档位 15px → 30px，按篇数线性缩放；
+ *   ② Top 10 排行榜 —— 照搬 Firefly：名次 + 标签 + 篇数 + 进度条。
+ *   两者信息不重复：云看"分布"，榜单看"重点"。
+ */
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const posts = await getCollection('blog', ({ data }) => !data.draft);
+
+const counted = new Map<string, number>();
+for (const post of posts) {
+  for (const tag of post.data.tags) counted.set(tag, (counted.get(tag) ?? 0) + 1);
+}
+const tags = [...counted.entries()]
+  .map(([name, count]) => ({ name, count }))
+  .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+
+const max = Math.max(1, ...tags.map((t) => t.count));
+const min = Math.min(...tags.map((t) => t.count), max);
+
+const MIN_FONT = 15;
+const MAX_FONT = 30;
+const fontFor = (count: number) =>
+  max === min ? (MIN_FONT + MAX_FONT) / 2 : MIN_FONT + ((count - min) / (max - min)) * (MAX_FONT - MIN_FONT);
+// 颜色也从次要色渐变到强调色（旧站是 #BBBBEE → #337ab7）
+const colorFor = (count: number) => {
+  const ratio = max === min ? 1 : (count - min) / (max - min);
+  return `color-mix(in oklab, var(--accent) ${Math.round(35 + ratio * 65)}%, var(--muted))`;
+};
+
+const top = tags.slice(0, 10);
+const topMax = top[0]?.count ?? 1;
+---
+
+<BaseLayout
+  title="标签"
+  description="全部标签"
+  bannerTitle="标签"
+  bannerSubtitle={`共 ${tags.length} 个标签 · ${posts.length} 篇文章`}
+  width="wide"
+>
+  <div class="board">
+    <div class="board-inner">
+      <div class="tagcloud">
+        {
+          tags.map((tag) => (
+            <a
+              class="tagcloud-item"
+              href={`/tags/${encodeURIComponent(tag.name)}/`}
+              style={`font-size: ${fontFor(tag.count).toFixed(1)}px; color: ${colorFor(tag.count)}`}
+            >
+              {tag.name}
+            </a>
+          ))
+        }
+      </div>
+
+      <div class="top-tags">
+        <h2 class="top-tags-title">Top 10</h2>
+        <div class="top-tags-list">
+          {
+            top.map((tag, index) => (
+              <a class="top-tag" href={`/tags/${encodeURIComponent(tag.name)}/`}>
+                <span class="top-tag-rank">{index + 1}</span>
+                <span class="top-tag-name">#{tag.name}</span>
+                <span class="top-tag-count">{tag.count} 篇</span>
+                <span class="top-tag-bar">
+                  <span class="top-tag-fill" style={`width: ${((tag.count / topMax) * 100).toFixed(1)}%`} />
+                </span>
+              </a>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>

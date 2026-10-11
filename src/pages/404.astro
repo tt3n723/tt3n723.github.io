@@ -1,0 +1,19 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="页面不存在" description="404">
+  <section class="flex flex-col items-center justify-center py-32 text-center">
+    <p class="text-6xl font-bold text-accent">404</p>
+    <h1 class="mt-4 text-2xl font-semibold">这个页面不存在</h1>
+    <p class="mt-2 text-muted">可能是链接过期了，或者地址打错了。</p>
+    <div class="mt-8 flex gap-3 text-sm">
+      <a href="/" class="rounded-lg bg-accent px-4 py-2 font-medium text-accent-fg transition hover:opacity-90">
+        回到首页
+      </a>
+      <a href="/blog" class="rounded-lg border border-line px-4 py-2 font-medium text-muted transition hover:text-fg">
+        全部文章
+      </a>
+    </div>
+  </section>
+</BaseLayout>

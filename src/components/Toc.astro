@@ -1,0 +1,78 @@
+---
+/**
+ * 文章页右侧目录。第三版。
+ *
+ * 作者对前两版的评价是"像一坨"——诊断：18 个 h3 平铺成一片同样的灰色小字，
+ * h2 的编号和它下面十几个 h3 之间**没有任何视觉联系**。
+ *
+ * 这一版：
+ *   1. **只展开"你正在读的那一节"**，其他组收起（85 项立刻变成 h2 列表 + 当前组）
+ *   2. h3 挂在一条**竖向导轨线**上，明确"这些属于上面那个 h2"
+ *   3. 当前 h2 行**吸顶**（sticky），滚动时始终知道自己在哪一节
+ *
+ * 开合完全由滚动位置驱动，不再有手动三角（作者要的 b+c 方案）。
+ */
+import type { MarkdownHeading } from 'astro';
+
+interface Props {
+  headings: MarkdownHeading[];
+}
+
+const { headings } = Astro.props;
+
+const groups: {
+  slug: string;
+  text: string;
+  children: { slug: string; text: string }[];
+}[] = [];
+
+for (const heading of headings) {
+  if (heading.depth === 2) {
+    groups.push({ slug: heading.slug, text: heading.text, children: [] });
+  } else if (heading.depth === 3 && groups.length > 0) {
+    groups[groups.length - 1].children.push({ slug: heading.slug, text: heading.text });
+  }
+}
+---
+
+{
+  groups.length > 0 && (
+    <aside class="toc-aside">
+      <div class="toc-card">
+        <p class="toc-heading">目录</p>
+        <div class="toc-scroll">
+          <div class="toc-content" data-toc-content>
+            {groups.map((group, index) => (
+              <div class="toc-group" data-toc-group>
+                <a
+                  class="toc-item toc-item-l0"
+                  data-heading-id={group.slug}
+                  data-toc-top
+                  href={`#${group.slug}`}
+                >
+                  <span class="toc-badge">{index + 1}</span>
+                  <span class="toc-label">{group.text}</span>
+                </a>
+                {group.children.length > 0 && (
+                  <div class="toc-children">
+                    {group.children.map((child) => (
+                      <a
+                        class="toc-item toc-item-l1"
+                        data-heading-id={child.slug}
+                        href={`#${child.slug}`}
+                      >
+                        <span class="toc-dot" aria-hidden="true" />
+                        <span class="toc-label">{child.text}</span>
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+            <div class="toc-indicator" data-toc-indicator aria-hidden="true" />
+          </div>
+        </div>
+      </div>
+    </aside>
+  )
+}

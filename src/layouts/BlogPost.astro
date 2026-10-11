@@ -1,84 +1,109 @@
 ---
-import { Image } from 'astro:assets';
-import type { CollectionEntry } from 'astro:content';
-import BaseHead from '../components/BaseHead.astro';
-import Footer from '../components/Footer.astro';
+import type { MarkdownHeading } from 'astro';
+import { getCollection } from 'astro:content';
+import CategoryNav from '../components/CategoryNav.astro';
 import FormattedDate from '../components/FormattedDate.astro';
-import Header from '../components/Header.astro';
+import Toc from '../components/Toc.astro';
+import BaseLayout from './BaseLayout.astro';
 
-type Props = CollectionEntry<'blog'>['data'];
+interface Props {
+  id: string;
+  title: string;
+  description?: string;
+  pubDate: Date;
+  updatedDate?: Date;
+  tags?: string[];
+  categories?: string[];
+  cover?: string;
+  headings?: MarkdownHeading[];
+  stats?: { chars: number; words: number; minutes: number };
+}
 
-const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
+const {
+  id,
+  title,
+  description,
+  pubDate,
+  updatedDate,
+  tags = [],
+  categories = [],
+  cover,
+  headings = [],
+  stats,
+} = Astro.props;
+
+// 上一篇 / 下一篇（作者要求补的"操作流程"）
+const all = (await getCollection('blog', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+const index = all.findIndex((post) => post.id === id);
+const older = index >= 0 && index < all.length - 1 ? all[index + 1] : undefined;
+const newer = index > 0 ? all[index - 1] : undefined;
+
+const dateText = new Intl.DateTimeFormat('zh-CN', {
+  dateStyle: 'medium',
+  timeZone: 'Asia/Shanghai',
+}).format(pubDate);
+
+// 头图上那一行：日期 · 字数 · 阅读时长 · 分类
+// 头图上那一行：**只要时间 / 字数 / 阅读时长**（作者要求去掉分类和标签）
+const bannerSubtitle = [dateText, stats ? `${stats.chars} 字` : null, stats ? `约 ${stats.minutes} 分钟` : null]
+  .filter(Boolean)
+  .join(' · ');
 ---
 
-<html lang="en">
-	<head>
-		<BaseHead title={title} description={description} />
-		<style>
-			main {
-				width: calc(100% - 2em);
-				max-width: 100%;
-				margin: 0;
-			}
-			.hero-image {
-				width: 100%;
-			}
-			.hero-image img {
-				display: block;
-				margin: 0 auto;
-				border-radius: 12px;
-				box-shadow: var(--box-shadow);
-			}
-			.prose {
-				width: 720px;
-				max-width: calc(100% - 2em);
-				margin: auto;
-				padding: 1em;
-				color: rgb(var(--gray-dark));
-			}
-			.title {
-				margin-bottom: 1em;
-				padding: 1em 0;
-				text-align: center;
-				line-height: 1;
-			}
-			.title h1 {
-				margin: 0 0 0.5em 0;
-			}
-			.date {
-				margin-bottom: 0.5em;
-				color: rgb(var(--gray));
-			}
-			.last-updated-on {
-				font-style: italic;
-			}
-		</style>
-	</head>
+<BaseLayout
+  title={title}
+  description={description}
+  width="post"
+  image={cover}
+  kind="article"
+  publishedTime={pubDate.toISOString()}
+  bannerTitle={title}
+  bannerSubtitle={bannerSubtitle}
+  bannerImage={cover}
+  bannerHeight="100vh"
+>
+  <!-- 正文装进一块白板（和首页同款语言），目录留在板子外面 -->
+  <div class="mx-auto w-full lg:grid lg:grid-cols-[minmax(0,1fr)_14rem] lg:gap-8 lg:px-4 2xl:max-w-[104rem]">
+    <article class="post-board min-w-0" data-pagefind-body>
+      <div class="post-board-inner">
+        <!-- 标题已经在头图上了；这里给 Pagefind 一个稳的标题来源 -->
+        <span class="sr-only" data-pagefind-meta="title">{title}</span>
 
-	<body>
-		<Header />
-		<main>
-			<article>
-				<div class="hero-image">
-					{heroImage && <Image width={1020} height={510} src={heroImage} alt="" />}
-				</div>
-				<div class="prose">
-					<div class="title">
-						<div class="date">
-							<FormattedDate date={pubDate} />
-							{updatedDate && (
-								<div class="last-updated-on">
-									Last updated on <FormattedDate date={updatedDate} />
-								</div>
-							)}
-						</div>
-						<h1>{title}</h1>
-						<hr />
-					</div>
-					<slot />
-				</div>
-			</article>
-		</main>
-		<Footer />
-	</body>
-</html>
+        <CategoryNav currentId={id} categories={categories} />
+
+        <div
+          class="prose prose-slate max-w-none dark:prose-invert prose-headings:scroll-mt-28 prose-a:no-underline hover:prose-a:underline"
+        >
+          <slot />
+        </div>
+
+        {
+          (older || newer) && (
+            <nav class="post-neighbors" aria-label="相邻文章">
+              {older ? (
+                <a class="neighbor" href={`/blog/${older.id}/`}>
+                  <span class="neighbor-label">← 上一篇</span>
+                  <span class="neighbor-title">{older.data.title}</span>
+                </a>
+              ) : (
+                <span class="neighbor is-empty" />
+              )}
+              {newer ? (
+                <a class="neighbor is-next" href={`/blog/${newer.id}/`}>
+                  <span class="neighbor-label">下一篇 →</span>
+                  <span class="neighbor-title">{newer.data.title}</span>
+                </a>
+              ) : (
+                <span class="neighbor is-empty" />
+              )}
+            </nav>
+          )
+        }
+      </div>
+    </article>
+
+    <Toc headings={headings} />
+  </div>
+</BaseLayout>

@@ -1,0 +1,10 @@
+# Pagefind 索引配置（pnpm build 里 `pagefind --site dist` 会自动读这个文件）
+#
+# 为什么要 exclude_selectors：你正文里有约 7000 处 KaTeX 公式，
+# 不排除的话它们会被拆成乱码塞进搜索索引，既撑大索引又污染搜索结果。
+site: dist
+exclude_selectors:
+  - ".katex"
+  - ".katex-display"
+  - "[data-pagefind-ignore]"
+  - ".code-head"

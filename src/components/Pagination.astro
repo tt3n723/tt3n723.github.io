@@ -1,0 +1,85 @@
+---
+/**
+ * 构建期真分页。样式照搬作者旧站 Hexo Fluid 的 .pagination。
+ *
+ * 关键细节（也是照抄旧站）：**每个链接都带 #board 锚点**。
+ * 旧站的 hexo 配置就是 `format: "page/%d/#board"` ——
+ * 真分页是整页刷新，而页面顶部是 100vh 的头图，
+ * 没有锚点的话每翻一页都要先滚过一整屏才能看到文章。
+ */
+interface Props {
+  page: {
+    currentPage: number;
+    lastPage: number;
+    url: { prev?: string; next?: string };
+  };
+}
+
+const { page } = Astro.props;
+const { currentPage, lastPage, url } = page;
+
+const ANCHOR = '#board';
+const withAnchor = (href?: string) => (href ? `${href}${ANCHOR}` : undefined);
+const hrefFor = (p: number) => (p === 1 ? `/${ANCHOR}` : `/${p}/${ANCHOR}`);
+
+const buildPages = (): (number | 'gap')[] => {
+  if (lastPage <= 7) return Array.from({ length: lastPage }, (_, i) => i + 1);
+  const wanted = new Set([1, lastPage, currentPage - 1, currentPage, currentPage + 1]);
+  const sorted = [...wanted].filter((p) => p >= 1 && p <= lastPage).sort((a, b) => a - b);
+  const out: (number | 'gap')[] = [];
+  let previous = 0;
+  for (const p of sorted) {
+    if (previous && p - previous > 1) out.push('gap');
+    out.push(p);
+    previous = p;
+  }
+  return out;
+};
+
+const pages = buildPages();
+const prevHref = withAnchor(url.prev);
+const nextHref = withAnchor(url.next);
+
+const prevIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>';
+const nextIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>';
+---
+
+{
+  lastPage > 1 && (
+    <nav class="pagination" aria-label="分页">
+      {prevHref ? (
+        <a class="extend" href={prevHref} rel="prev">
+          <Fragment set:html={prevIcon} />
+          <span class="extend-text">上一页</span>
+        </a>
+      ) : (
+        <span class="extend is-disabled" aria-disabled="true">
+          <Fragment set:html={prevIcon} />
+          <span class="extend-text">上一页</span>
+        </span>
+      )}
+
+      {pages.map((p) =>
+        p === 'gap' ? (
+          <span class="page-space" aria-hidden="true">…</span>
+        ) : p === currentPage ? (
+          <span class="page-number is-current" aria-current="page">{p}</span>
+        ) : (
+          <a class="page-number" href={hrefFor(p)}>{p}</a>
+        ),
+      )}
+
+      {nextHref ? (
+        <a class="extend" href={nextHref} rel="next">
+          <span class="extend-text">下一页</span>
+          <Fragment set:html={nextIcon} />
+        </a>
+      ) : (
+        <span class="extend is-disabled" aria-disabled="true">
+          <span class="extend-text">下一页</span>
+          <Fragment set:html={nextIcon} />
+        </span>
+      )}
+    </nav>
+  )
+}

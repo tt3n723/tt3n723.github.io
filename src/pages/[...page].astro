@@ -1,0 +1,41 @@
+---
+/**
+ * 首页 = 全部文章 + 分页。
+ *
+ * 视觉照搬作者旧站 Hexo Fluid：内容装在一块白色"板子"（#board）里，
+ * 板子内是限宽的列表列；列表项之间靠 margin 拉开，**没有各自的卡片框**。
+ */
+import { getCollection } from 'astro:content';
+import Pagination from '../components/Pagination.astro';
+import PostCard from '../components/PostCard.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { POSTS_PER_PAGE, SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+
+export async function getStaticPaths({ paginate }: any) {
+  const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
+    (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+  );
+  return paginate(posts, { pageSize: POSTS_PER_PAGE });
+}
+
+const { page } = Astro.props;
+const isFirstPage = page.currentPage === 1;
+---
+
+<BaseLayout
+  title={isFirstPage ? undefined : `第 ${page.currentPage} 页`}
+  description={SITE_DESCRIPTION}
+  bannerTitle={SITE_TITLE}
+  bannerSubtitle={SITE_DESCRIPTION}
+  bannerTyped
+  width="wide"
+>
+  <div class="board" id="board">
+    <div class="board-inner">
+      <div class="post-list">
+        {page.data.map((post: any) => <PostCard post={post} />)}
+      </div>
+      <Pagination page={page} />
+    </div>
+  </div>
+</BaseLayout>

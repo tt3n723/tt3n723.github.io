@@ -1,0 +1,52 @@
+---
+/**
+ * 分类总览 —— 照搬 Firefly：三列卡片，每张一个圆形文件夹图标 + 名称 + 篇数 + 右箭头。
+ * 没有分类封面图（Firefly 也没有）。
+ */
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const posts = await getCollection('blog', ({ data }) => !data.draft);
+
+const counted = new Map<string, number>();
+for (const post of posts) {
+  const name = post.data.categories[0] ?? '未分类';
+  counted.set(name, (counted.get(name) ?? 0) + 1);
+}
+const categories = [...counted.entries()]
+  .map(([name, count]) => ({ name, count }))
+  .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+---
+
+<BaseLayout
+  title="分类"
+  description="全部分类"
+  bannerTitle="分类"
+  bannerSubtitle={`共 ${categories.length} 个分类 · ${posts.length} 篇文章`}
+  width="wide"
+>
+  <div class="board">
+    <div class="board-inner">
+      <div class="cat-grid">
+        {
+          categories.map((category) => (
+            <a class="cat-card" href={`/categories/${encodeURIComponent(category.name)}/`} data-reveal>
+              <span class="cat-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                </svg>
+              </span>
+              <span class="cat-body">
+                <span class="cat-name">{category.name}</span>
+                <span class="cat-count">{category.count} 篇</span>
+              </span>
+              <svg class="cat-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="m9 18 6-6-6-6" />
+              </svg>
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</BaseLayout>

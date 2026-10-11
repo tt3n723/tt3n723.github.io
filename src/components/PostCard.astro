@@ -1,0 +1,89 @@
+---
+/**
+ * 首页文章卡片 —— 结构照作者旧站 Hexo Fluid 的 .index-card。
+ *
+ * 它**没有卡片框**（没有边框圆角背景阴影），"卡片感"来自外面那块白板 #board。
+ * 图片占 33.3333%、`aspect-ratio: 16/9`（作者自己在 custom.css 里改的，
+ * 原话"与单套封面同比例，同一张图在列表和头图都不被裁切"）。
+ *
+ * 本轮的改动（作者要求）：
+ *   - 条目之间加一条分界线
+ *   - 时间 / 分类 / 标签各配一个图标
+ *   - **分类和标签可以点** → 所以卡片不再是"一整块 <a>"，
+ *     否则会出现 <a> 套 <a> 的非法结构
+ */
+import type { CollectionEntry } from 'astro:content';
+import lqips from '../data/lqips.json';
+import FormattedDate from './FormattedDate.astro';
+
+interface Props {
+  post: CollectionEntry<'blog'>;
+}
+
+const { post } = Astro.props;
+
+const table = lqips as Record<string, string>;
+const lqip = post.data.cover ? table[post.data.cover] : undefined;
+const url = `/blog/${post.id}/`;
+const category = post.data.categories[0];
+const tags = post.data.tags.slice(0, 3);
+
+const ICON_CLOCK =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+const ICON_FOLDER =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>';
+const ICON_TAG =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4 12 22l-9-9V4h9z"/><circle cx="7.5" cy="7.5" r="1.4" fill="currentColor" stroke="none"/></svg>';
+---
+
+<article class="index-card" data-reveal>
+  {
+    post.data.cover && (
+      <div class="index-img">
+        <a href={url} tabindex="-1" aria-hidden="true">
+          <span
+            class="index-img-frame"
+            style={lqip ? `background: linear-gradient(135deg, ${lqip})` : undefined}
+          >
+            <img src={post.data.cover} alt="" loading="lazy" class="cover-img" />
+          </span>
+        </a>
+      </div>
+    )
+  }
+
+  <div class:list={['index-info', !post.data.cover && 'index-info-full']}>
+    <h2 class="index-header">
+      <a href={url}>{post.data.title}</a>
+    </h2>
+
+    <a class="index-excerpt" href={url}>
+      <div>{post.data.description}</div>
+    </a>
+
+    <div class="index-btm">
+      <span class="index-meta">
+        <Fragment set:html={ICON_CLOCK} />
+        <FormattedDate date={post.data.pubDate} />
+      </span>
+
+      {
+        category && (
+          <a class="index-meta index-meta-link" href={`/categories/${encodeURIComponent(category)}/`}>
+            <Fragment set:html={ICON_FOLDER} />
+            {category}
+          </a>
+        )
+      }
+
+      {
+        tags.map((tag) => (
+          <a class="index-meta index-meta-link" href={`/tags/${encodeURIComponent(tag)}/`}>
+            <Fragment set:html={ICON_TAG} />
+            {tag}
+          </a>
+        ))
+      }
+    </div>
+  </div>
+</article>

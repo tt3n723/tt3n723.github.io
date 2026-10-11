@@ -1,0 +1,49 @@
+---
+/**
+ * 单个分类下的文章 —— 用和归档页同一套扁平列表（作者旧站也是这样）。
+ */
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog', ({ data }) => !data.draft);
+  const names = new Set(posts.map((post) => post.data.categories[0] ?? '未分类'));
+  return [...names].map((name) => ({ params: { category: name }, props: { name } }));
+}
+
+const { name } = Astro.props;
+const posts = (await getCollection('blog', ({ data }) => !data.draft && (data.categories[0] ?? '未分类') === name)).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+
+const fmtDay = new Intl.DateTimeFormat('zh-CN', {
+  month: '2-digit',
+  day: '2-digit',
+  timeZone: 'Asia/Shanghai',
+});
+---
+
+<BaseLayout
+  title={`分类：${name}`}
+  description={`分类 ${name} 下的全部文章`}
+  bannerTitle={name}
+  bannerSubtitle={`分类 · 共 ${posts.length} 篇文章`}
+  width="wide"
+>
+  <div class="board">
+    <div class="board-inner">
+      <div class="flat-list">
+        {
+          posts.map((post) => (
+            <a class="flat-item" href={`/blog/${post.id}/`}>
+              <span class="flat-date">{fmtDay.format(post.data.pubDate)}</span>
+              <span class="flat-title">{post.data.title}</span>
+              <span class="flat-tags">{post.data.tags.map((tag) => `#${tag}`).join(' ')}</span>
+            </a>
+          ))
+        }
+      </div>
+      <p class="flat-back"><a href="/categories/">← 全部分类</a></p>
+    </div>
+  </div>
+</BaseLayout>

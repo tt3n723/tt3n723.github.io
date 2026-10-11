@@ -1,0 +1,188 @@
+---
+/**
+ * 页面头图。
+ *
+ * 形态照搬作者旧站（Hexo Fluid）：
+ *   高度 100vh（关于页 80vh，文章页 45vh）
+ *   background: cover / center，遮罩 rgba(0,0,0,.3)
+ *   **无圆角、无底部渐变、无文字阴影**
+ *   标题 2rem / 字重 500，底部一个上下浮动的下滑箭头
+ *
+ * 导航栏是 position:fixed 浮在这张图上面的（见 Header.astro）。
+ */
+import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+
+interface Props {
+  image?: string;
+  title?: string;
+  subtitle?: string;
+  /** CSS 高度值 */
+  height?: string;
+  /** 是否显示下滑箭头 */
+  scrollHint?: boolean;
+  /** 打字机效果，默认开启；传 false 可关掉 */
+  typed?: boolean;
+}
+
+const {
+  image = '/img/banner-home.gif',
+  title = SITE_TITLE,
+  subtitle = '',
+  height = '100vh',
+  scrollHint = true,
+  typed = true,
+} = Astro.props;
+---
+
+<header class="banner" style={`--banner-image: url('${image}'); --banner-height: ${height}`} data-pagefind-ignore>
+  <div class="banner-mask">
+    <div class="banner-text">
+      <h1
+        class:list={['banner-title', typed && 'banner-title-typed']}
+        data-typed={typed ? title : undefined}
+      >
+        {title}
+      </h1>
+      {subtitle && <p class="banner-sub">{subtitle}</p>}
+    </div>
+    {
+      scrollHint && (
+        <button type="button" class="banner-scroll" data-scroll-down aria-label="向下滚动">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </button>
+      )
+    }
+  </div>
+</header>
+
+<style>
+  .banner {
+    position: relative;
+    width: 100%;
+    height: var(--banner-height, 100vh);
+    overflow: hidden;
+    background-image: var(--banner-image);
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: cover;
+  }
+  /* Fluid 的遮罩就是一层纯色，没有渐变 */
+  .banner-mask {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, var(--banner-mask, 0.3));
+    color: #fff;
+  }
+  .banner-text {
+    width: 80%;
+    max-width: calc(960px - 6rem);
+    text-align: center;
+    overflow-wrap: break-word;
+  }
+  .banner-title {
+    font-size: 2rem;
+    font-weight: 500;
+    line-height: 1.2;
+    margin-bottom: 0.5rem;
+  }
+  /* 打字机：终端样式的**底部短横线**光标（不是竖条） */
+  .banner-title-typed::after {
+    content: '_';
+    display: inline-block;
+    margin-left: 0.04em;
+    font-weight: 300;
+    opacity: 0.85;
+    animation: caret-blink 1s steps(2, start) infinite;
+  }
+  .banner-title-typed.is-typing::after {
+    animation-duration: 0.7s;
+  }
+  @keyframes caret-blink {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .banner-title-typed::after {
+      display: none;
+    }
+  }
+  .banner-sub {
+    font-size: 1rem;
+    font-weight: 400;
+    opacity: 0.9;
+  }
+  .banner-scroll {
+    position: absolute;
+    bottom: 2.5rem;
+    left: 50%;
+    width: 2.5rem;
+    height: 2.5rem;
+    margin-left: -1.25rem;
+    padding: 0;
+    border: 0;
+    border-radius: 9999px;
+    background: none;
+    color: #fff;
+    cursor: pointer;
+    animation: banner-bounce 1.5s infinite;
+    transition: background-color 0.15s;
+  }
+  .banner-scroll:hover {
+    background: rgba(255, 255, 255, 0.16);
+  }
+  .banner-scroll svg {
+    width: 1.75rem;
+    height: 1.75rem;
+    margin: 0 auto;
+    display: block;
+  }
+  @keyframes banner-bounce {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(0.5rem);
+    }
+  }
+  /* 窗口太矮时不显示箭头（Fluid 是 80vh 以下隐藏） */
+  @media (max-height: 42rem) {
+    .banner-scroll {
+      display: none;
+    }
+  }
+  @media (max-width: 767px) {
+    .banner-title {
+      font-size: 1.5rem;
+    }
+  }
+  @media (max-width: 575px) {
+    .banner-title {
+      font-size: 1.35rem;
+    }
+    .banner-text {
+      font-size: 0.9rem;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .banner-scroll {
+      animation: none;
+    }
+  }
+  @media print {
+    .banner {
+      display: none;
+    }
+  }
+</style>

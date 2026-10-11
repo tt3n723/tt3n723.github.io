@@ -1,0 +1,72 @@
+# 部署到 GitHub Pages。
+#
+# 前提（在仓库 Settings → Pages 里把 Source 选成 "GitHub Actions"）。
+#
+# 这个工作流对两种仓库都适用：
+#   - 用户站：仓库名是 <用户名>.github.io  → 网址是 https://<用户名>.github.io
+#   - 项目站：仓库名任意                  → 网址是 https://<用户名>.github.io/<仓库名>
+#
+# 会对 <用户名>.github.io 这种**用户站**开箱即用。
+# 项目站还需要在 astro.config.mjs 里设 base（详见 GUIDE.md 的"部署"一节）。
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    # 本地默认分支是 master，GitHub 新建仓库默认是 main —— 两个都监听，免得出错
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # 必须在 build 之前：它会把真实的 Pages 地址输出出来，
+      # 下面拿去喂给构建，这样站点里的绝对链接 / RSS / sitemap 都是对的，
+      # 不用手改任何常量。
+      - name: Setup Pages
+        id: pages
+        uses: actions/configure-pages@v5
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        # ⚠️ 必须用 pnpm build（generate-lqips && astro build && pagefind）。
+        # 只跑 astro build 会清空 dist/ 里的 Pagefind 搜索索引，搜索就永远没结果。
+        run: pnpm build
+        env:
+          SITE_URL: ${{ steps.pages.outputs.origin }}
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

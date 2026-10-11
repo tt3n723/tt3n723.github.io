@@ -1,20 +1,24 @@
 ---
 import { type CollectionEntry, getCollection, render } from 'astro:content';
 import BlogPost from '../../layouts/BlogPost.astro';
+import { readingStats } from '../../utils/reading';
 
 export async function getStaticPaths() {
-	const posts = await getCollection('blog');
-	return posts.map((post) => ({
-		params: { slug: post.id },
-		props: post,
-	}));
+  const posts = await getCollection('blog');
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: post,
+  }));
 }
+
 type Props = CollectionEntry<'blog'>;
 
 const post = Astro.props;
-const { Content } = await render(post);
+const { Content, headings } = await render(post);
+// 正文原markdown在 post.body 里，构建期直接算，不需要插件
+const stats = readingStats(post.body ?? '');
 ---
 
-<BlogPost {...post.data}>
-	<Content />
+<BlogPost {...post.data} id={post.id} headings={headings} stats={stats}>
+  <Content />
 </BlogPost>
