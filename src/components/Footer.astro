@@ -2,15 +2,88 @@
 import { SITE_AUTHOR, SITE_TITLE } from '../consts';
 
 const year = new Date().getFullYear();
+
+const LINKS = [
+  { href: '/archive', label: '归档' },
+  { href: '/categories', label: '分类' },
+  { href: '/tags', label: '标签' },
+  { href: '/about', label: '关于' },
+];
 ---
 
-<footer class="border-t border-line py-10 text-sm text-muted" data-pagefind-ignore>
-  <div class="mx-auto flex max-w-5xl flex-col items-center gap-2 px-4 sm:flex-row sm:justify-between">
-    <p>© {year} {SITE_AUTHOR} · {SITE_TITLE}</p>
-    <p class="flex items-center gap-4">
-      <a href="/categories" class="transition hover:text-accent">分类</a>
-      <a href="/tags" class="transition hover:text-accent">标签</a>
-      <a href="/about" class="transition hover:text-accent">关于</a>
+<footer class="site-footer" data-pagefind-ignore>
+  <div class="footer-inner">
+    <p class="footer-copy">
+      © {year} {SITE_AUTHOR} · {SITE_TITLE}
     </p>
+
+    <nav class="footer-links" aria-label="页脚导航">
+      {
+        LINKS.map((link) => (
+          <a href={link.href}>{link.label}</a>
+        ))
+      }
+      <a href="/rss.xml" class="footer-rss" title="RSS 订阅" aria-label="RSS 订阅">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 11a9 9 0 0 1 9 9" />
+          <path d="M4 4a16 16 0 0 1 16 16" />
+          <circle cx="5" cy="19" r="1" />
+        </svg>
+      </a>
+    </nav>
   </div>
+
+  <style>
+    .site-footer {
+      margin-top: 2rem;
+      border-top: 1px solid var(--line);
+      padding: 2.25rem 1rem 2.5rem;
+      font-size: 0.84rem;
+      color: var(--muted);
+    }
+    .footer-inner {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      max-width: 70rem;
+      margin: 0 auto;
+    }
+    .footer-copy {
+      margin: 0;
+    }
+    .footer-links {
+      display: flex;
+      align-items: center;
+      gap: 1.1rem;
+    }
+    .footer-links a {
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .footer-links a:hover {
+      color: var(--accent);
+    }
+    .footer-rss {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.9rem;
+      height: 1.9rem;
+      border: 1px solid var(--line);
+      border-radius: 9999px;
+      transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+    }
+    .footer-rss svg {
+      width: 0.95rem;
+      height: 0.95rem;
+    }
+    .footer-rss:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 10%, transparent);
+    }
+  </style>
 </footer>

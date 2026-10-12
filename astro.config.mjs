@@ -26,11 +26,17 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss()],
   },
+  // ⚠️ Windows 会把一批端口动态划进「保留区间」，落在里面的端口绑定直接失败：
+  //     listen EACCES: permission denied
+  //   这个区间**会变**（已经踩过两次：4321 → 8899 都被划进去过）。
+  //   查当前区间：netsh interface ipv4 show excludedportrange protocol=tcp
+  //   如果这里配的端口哪天起不来，换一个不在区间里的即可。
   server: {
-    // 固定端口。Astro 默认的 4321（和 4322）现在落在 Windows 的动态保留区间
-    // 4304-4403 里，绑定会直接失败：listen EACCES: permission denied。
-    // 查当前保留区间：netsh interface ipv4 show excludedportrange protocol=tcp
     port: 5173,
+  },
+  preview: {
+    // 和 dev 分开，两个可以同时跑
+    port: 5174,
   },
   markdown: {
     // Astro 7 的默认 Markdown 处理器是 Sätteri；这里显式选用 remark/rehype 管线，

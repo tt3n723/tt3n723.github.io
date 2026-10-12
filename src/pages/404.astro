@@ -2,7 +2,8 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
-<BaseLayout title="页面不存在" description="404">
+{/* 头图压矮：100vh 会把"页面不存在"整个推到屏幕外，得滚动才看得到 */}
+<BaseLayout title="页面不存在" description="404" bannerHeight="52vh">
   <section class="flex flex-col items-center justify-center py-32 text-center">
     <p class="text-6xl font-bold text-accent">404</p>
     <h1 class="mt-4 text-2xl font-semibold">这个页面不存在</h1>

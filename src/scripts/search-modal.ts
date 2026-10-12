@@ -7,10 +7,18 @@ const DEBOUNCE = 140;
 
 let pagefind: any = null;
 
+// ⚠️ 这里**不能**写成 import('/pagefind/pagefind.js') 字面量。
+// pagefind.js 只存在于构建产物 dist/pagefind/ 里，dev 阶段没有这个文件，
+// 而 Vite 在 **dev 和 build 都会**对 import() 的字面量做静态解析 ——
+// 结果 pnpm dev 直接报：Failed to resolve import "/pagefind/pagefind.js"。
+// （只用 @vite-ignore 注释不够稳，所以这里再把路径拼出来，让静态分析看不到字面量。）
+function pagefindUrl() {
+  return '/pagefind' + '/pagefind.js';
+}
+
 async function loadPagefind() {
   if (pagefind) return pagefind;
-  // @vite-ignore：这是构建产物里的运行时文件，不能让打包器去解析
-  pagefind = await import(/* @vite-ignore */ '/pagefind/pagefind.js');
+  pagefind = await import(/* @vite-ignore */ pagefindUrl());
   return pagefind;
 }
 

@@ -80,14 +80,33 @@ pagefind --site dist              # 给 dist 建搜索索引
 pnpm clean && pnpm build
 ```
 
-**③ 开发端口固定 5173**
+**③ 端口：Windows 的保留区间会变，报 EACCES 就换一个**
 
-Astro 默认的 4321 落在 **Windows 动态保留区间 4304-4403** 里，绑定直接失败：
-`listen EACCES: permission denied`。查当前区间：
+配置里：`server.port = 5173`（dev）、`preview.port = 5174`（preview，和 dev 分开）。
+
+但 **Windows 会动态把一批端口划进「保留区间」**，落在里面的端口绑定会直接失败：
+
+```
+Error: listen EACCES: permission denied 127.0.0.1:8899
+```
+
+**这个区间会变。** 已经踩过两次：
+
+| 时间 | 被划进去的端口 | 后果 |
+| --- | --- | --- |
+| 一开始 | 4321（Astro 默认） | dev 起不来 |
+| 后来 | **8899**（当时正在用的 preview 端口） | preview 起不来 |
+
+查当前区间：
 
 ```powershell
 netsh interface ipv4 show excludedportrange protocol=tcp
 ```
+
+输出会看到若干 `Start Port` / `End Port`，只要挑一个不在任何区间里的端口即可。
+
+> 判断某个端口能不能用：`Test-NetConnection 127.0.0.1 -Port <端口>`，
+> 或者直接把所有区间列出来对照。
 
 ---
 

@@ -598,13 +598,19 @@ html.dark .board {
 .cat-card:hover .cat-icon {
   background: color-mix(in srgb, var(--accent) 20%, transparent);
 }
+/* 名称吃掉中间的空档，篇数胶囊和箭头一起靠右 ——
+   否则名称和箭头之间会空出一大截（作者：中间空一大截） */
 .cat-body {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
   flex: 1;
   min-width: 0;
 }
 .cat-name {
-  display: block;
-  font-size: 1.1rem;
+  flex: 1;
+  min-width: 0;
+  font-size: 1.05rem;
   font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
@@ -616,14 +622,14 @@ html.dark .board {
 .cat-count {
   display: inline-flex;
   align-items: center;
-  margin-top: 0.4rem;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
   padding: 0.1rem 0.55rem;
   border-radius: 9999px;
   background: color-mix(in srgb, var(--accent) 12%, transparent);
   color: var(--accent);
-  font-size: 0.76rem;
+  font-size: 0.74rem;
   font-weight: 600;
-  font-variant-numeric: tabular-nums;
 }
 .cat-chevron {
   flex-shrink: 0;
@@ -638,34 +644,53 @@ html.dark .board {
 /* ============================================================
    标签总览：字号云（旧站）+ Top 10（Firefly）
    ============================================================ */
+/* 标签云收窄居中：标签少的时候铺满整个白板会显得很空 */
 .tagcloud {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   justify-content: center;
-  gap: 0.25rem 0.75rem;
-  padding: 1rem 5%;
+  gap: 0.35rem 1.1rem;
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: 1.5rem 0 0.5rem;
+  min-height: 7rem;
 }
 .tagcloud-item {
-  display: inline-block;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.05rem;
   padding: 0.5rem 0.35rem;
   line-height: 1.2;
   text-decoration: none;
   transition: transform 0.15s ease, opacity 0.15s ease;
+}
+.tagcloud-item .hash {
+  font-size: 0.55em;
+  opacity: 0.45;
 }
 .tagcloud-item:hover {
   transform: scale(1.08);
   opacity: 0.85;
 }
 .top-tags {
-  margin-top: 2rem;
+  max-width: 40rem;
+  margin: 2rem auto 0;
   padding-top: 1.5rem;
   border-top: 1px solid var(--line);
 }
 .top-tags-title {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
   margin-bottom: 1rem;
   font-size: 1.05rem;
   font-weight: 700;
+}
+.top-tags-note {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--muted);
 }
 .top-tags-list {
   display: flex;
@@ -694,8 +719,12 @@ html.dark .board {
   color: var(--accent);
 }
 .top-tag-name {
-  min-width: 5.5rem;
-  font-size: 0.92rem;
+  flex: 1;
+  min-width: 0;
+  font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .top-tag-count {
   width: 3.2rem;
@@ -704,7 +733,8 @@ html.dark .board {
 }
 .top-tag-bar {
   flex: 1;
-  height: 0.5rem;
+  max-width: 16rem;
+  height: 0.45rem;
   border-radius: 9999px;
   background: color-mix(in srgb, var(--accent) 10%, transparent);
   overflow: hidden;
@@ -978,6 +1008,96 @@ html.dark .board {
 .prose p {
   margin-top: 1.05em;
   margin-bottom: 1.05em;
+}
+
+/* —— 行内 code：accent 色 + 浅底，和正文区分 —— */
+.prose :not(pre)>code {
+  padding: 0.12em 0.38em;
+  border-radius: 0.3rem;
+  font-size: 0.86em;
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  color: var(--accent);
+  font-family: var(--font-mono);
+}
+
+/* —— 链接：accent 色 + 底部细线 —— */
+.prose a {
+  text-decoration: none;
+  color: var(--accent);
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.prose a:hover {
+  border-bottom-color: var(--accent);
+}
+
+/* —— 强调 —— */
+.prose strong {
+  font-weight: 650;
+  color: var(--fg);
+}
+
+/* —— 列表：收紧间距 + accent 色 marker —— */
+.prose ul,
+.prose ol {
+  margin-top: 0.7em;
+  margin-bottom: 0.7em;
+  padding-left: 1.5em;
+}
+
+.prose li {
+  margin-top: 0.25em;
+  margin-bottom: 0.25em;
+}
+
+.prose li::marker {
+  color: var(--accent);
+}
+
+/* —— 引用块 —— */
+.prose blockquote {
+  margin: 1.2em 0;
+  padding: 0.5em 1em;
+  border-left: 3px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  background: color-mix(in srgb, var(--accent) 4%, transparent);
+  border-radius: 0 0.4rem 0.4rem 0;
+  color: var(--muted);
+  font-style: italic;
+}
+
+.prose blockquote p {
+  margin: 0.3em 0;
+}
+
+/* —— 分隔线 —— */
+.prose hr {
+  margin: 2.5rem 0;
+  border: none;
+  border-top: 1px solid var(--line);
+}
+
+/* —— 表格 —— */
+.prose table {
+  margin: 1.2em 0;
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.9em;
+}
+
+.prose th,
+.prose td {
+  padding: 0.5em 0.75em;
+  border: 1px solid var(--line);
+}
+
+.prose th {
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+  font-weight: 600;
+}
+
+.prose tr:nth-child(even) td {
+  background: color-mix(in srgb, var(--muted) 3%, transparent);
 }
 
 /* 标题层级包成嵌套 <section>，用它来表达缩进（remark-sectionize.mjs 生成） */

@@ -2,7 +2,7 @@
 /**
  * 标签总览 = **两套都有**（作者要的）：
  *   ① 字号云 —— 照搬旧站 Hexo：fish 档位 15px → 30px，按篇数线性缩放；
- *   ② Top 10 排行榜 —— 照搬 Firefly：名次 + 标签 + 篇数 + 进度条。
+ *   ② 热门标签排行榜 —— 照搬 Firefly：名次 + 标签 + 篇数 + 进度条。
  *   两者信息不重复：云看"分布"，榜单看"重点"。
  */
 import { getCollection } from 'astro:content';
@@ -50,8 +50,10 @@ const topMax = top[0]?.count ?? 1;
             <a
               class="tagcloud-item"
               href={`/tags/${encodeURIComponent(tag.name)}/`}
+              title={`#${tag.name} · ${tag.count} 篇`}
               style={`font-size: ${fontFor(tag.count).toFixed(1)}px; color: ${colorFor(tag.count)}`}
             >
+              <span class="hash">#</span>
               {tag.name}
             </a>
           ))
@@ -59,7 +61,10 @@ const topMax = top[0]?.count ?? 1;
       </div>
 
       <div class="top-tags">
-        <h2 class="top-tags-title">Top 10</h2>
+        <h2 class="top-tags-title">
+          热门标签
+          <span class="top-tags-note">按文章数排序</span>
+        </h2>
         <div class="top-tags-list">
           {
             top.map((tag, index) => (
