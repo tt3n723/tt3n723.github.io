@@ -23,7 +23,15 @@
   --color-accent: var(--accent);
   --color-accent-fg: var(--accent-fg);
   --font-sans: 'Inter', 'Noto Sans SC', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-mono: 'JetBrains Mono', 'Cascadia Code', Consolas, monospace;
+  /* 代码字体：**Consolas 优先**（作者指定；也是旧 Hexo 站用的字体）。
+     Consolas 是 Windows 专有字体，**不能自托管**，所以后面跟一串各平台的等宽回退：
+       macOS  → ui-monospace（SF Mono / Menlo）
+       其它   → Cascadia Mono / DejaVu Sans Mono / 系统 monospace */
+  --font-mono: Consolas, 'Cascadia Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, 'Liberation Mono', 'DejaVu Sans Mono', monospace;
+  /* ⚠️ Tailwind v4 的 preflight 用**这个变量**给 code/pre 设字体：
+       code,kbd,samp,pre { font-family: var(--default-mono-font-family, ui-monospace, …) }
+     只设 --font-mono 的话，代码块主体根本读不到（行内代码却会读，于是两边不一致）。 */
+  --default-mono-font-family: Consolas, 'Cascadia Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, 'Liberation Mono', 'DejaVu Sans Mono', monospace;
 }
 
 /* ============================================================
@@ -46,9 +54,10 @@
   --code-head-bg: oklch(0.955 0.005 var(--hue));
   --code-label: oklch(0.58 0.02 var(--hue));
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06);
-  /* 导航栏毛玻璃：带主题色（彩度是 --surface 的十几倍，换色相看得出来）且足够浅 */
-  --glass-bg: oklch(0.975 0.045 var(--hue) / 0.55);
-  --glass-border: oklch(0.82 0.08 var(--hue) / 0.3);
+  /* 导航栏毛玻璃：**用主题色本身的浅色调 + 透明度**（而不是把主题色掺进白色里），
+     所以换一个色相，玻璃的颜色会跟着明显变。 */
+  --glass-bg: oklch(0.87 0.085 var(--hue) / 0.72);
+  --glass-border: oklch(0.75 0.11 var(--hue) / 0.5);
   /* 导航栏毛玻璃：**带主题色**（比 --surface 明显更高的彩度）且足够浅 */
 }
 html.dark {
@@ -63,8 +72,8 @@ html.dark {
   --code-head-bg: oklch(0.245 0.016 var(--hue));
   --code-label: oklch(0.66 0.02 var(--hue));
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3);
-  --glass-bg: oklch(0.24 0.05 var(--hue) / 0.6);
-  --glass-border: oklch(0.5 0.07 var(--hue) / 0.3);
+  --glass-bg: oklch(0.42 0.09 var(--hue) / 0.72);
+  --glass-border: oklch(0.55 0.10 var(--hue) / 0.4);
 }
 
 /* ============================================================
@@ -315,74 +324,72 @@ html.dark .board {
 /* ============================================================
    分页 —— 照 Fluid 的 .pagination
    ============================================================ */
+/* 分页：去掉外框，改成一行圆形按钮，当前页实心主题色（作者：简洁一点、只要图标） */
 .pagination {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 0.15rem;
-  margin-top: 3rem;
-  padding: 0.5rem;
-  border: 1px solid var(--line);
-  border-radius: 0.75rem;
-  background: color-mix(in srgb, var(--muted) 5%, var(--surface));
+  gap: 0.3rem;
+  margin-top: 3.25rem;
+  padding: 0;
+  border: 0;
+  background: none;
 }
 .page-number,
 .extend {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 2.2rem;
-  height: 2.2rem;
-  margin: 0 0.05rem;
-  padding: 0.5rem 0.75rem;
+  width: 2.35rem;
+  height: 2.35rem;
+  padding: 0;
   border: 0;
-  border-radius: 0.125rem;
-  background-color: transparent;
-  color: var(--fg);
-  font-size: 0.9rem;
-  line-height: 1.25;
+  border-radius: 9999px;
+  background: none;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
   text-decoration: none;
   cursor: pointer;
-  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
-}
-.extend {
-  gap: 0.3rem;
-  padding: 0.5rem 0.7rem;
-}
-.extend svg {
-  width: 1.1rem;
-  height: 1.1rem;
-}
-.extend-text {
-  font-size: 0.82rem;
+  transition: color 0.15s, background-color 0.15s, transform 0.15s;
 }
 .page-number:hover,
 .extend:hover {
-  background-color: color-mix(in srgb, var(--fg) 8%, transparent);
   color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  transform: translateY(-1px);
 }
 .page-number.is-current {
-  background-color: var(--accent);
+  background: var(--accent);
   color: var(--accent-fg);
   font-weight: 700;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--accent) 32%, transparent);
+}
+.extend svg {
+  width: 1.15rem;
+  height: 1.15rem;
 }
 .extend.is-disabled {
-  opacity: 0.3;
+  opacity: 0.28;
   pointer-events: none;
 }
 .page-space {
-  align-self: flex-end;
-  padding: 0 0.3rem;
+  width: 1.75rem;
+  text-align: center;
   color: var(--muted);
+  user-select: none;
 }
 @media (max-width: 640px) {
-  .extend-text {
-    display: none;
-  }
   .pagination {
-    gap: 0;
-    padding: 0.35rem;
+    gap: 0.15rem;
+  }
+  .page-number,
+  .extend {
+    width: 2.1rem;
+    height: 2.1rem;
+    font-size: 0.82rem;
   }
 }
 
@@ -967,6 +974,18 @@ html.dark .board {
 .prose code::before,
 .prose code::after {
   content: none;
+}
+
+/* 代码统一字体 + **关掉连字**。
+   JetBrains Mono 默认会把 <= 渲染成 ≤、!= 渲染成 ≠、-> 渲染成 →、
+   >>= 渲染成 ≥= —— 看代码时很误导，作者明确不要。 */
+code,
+kbd,
+samp,
+pre {
+  font-family: var(--font-mono);
+  font-variant-ligatures: none;
+  font-feature-settings: 'liga' 0, 'clig' 0, 'calt' 0, 'dlig' 0, 'hlig' 0;
 }
 
 .prose {
@@ -1636,6 +1655,15 @@ html.dark .callout-caution .callout-title {
 .katex .mord.text .mord {
   font-family: inherit;
 }
+/* ⚠️ 这一条**不能删**。旧站（public/css/main.css）里有：
+     .katex, .mjx-mrow { white-space: pre-wrap !important; }
+   它让**宽公式换行**，而不是被 overflow-x 裁掉。
+   我重写 global.css 时把它丢了 —— 结果宽公式右边被切掉，
+   而且视口越窄切得越多（实测 480px 下 20 个块级公式裁掉 14 个）。
+   加上之后，公式会换行显示，永远看得全。 */
+.katex {
+  white-space: pre-wrap !important;
+}
 .katex-display {
   overflow-x: auto;
   overflow-y: hidden;
@@ -1649,6 +1677,25 @@ html.dark .callout-caution .callout-title {
 .katex-display::-webkit-scrollbar-thumb {
   border-radius: 9999px;
   background: color-mix(in srgb, var(--muted) 35%, transparent);
+}
+
+/* ============================================================
+   Shiki 双主题：把代码文字切到暗色主题
+   ------------------------------------------------------------
+   astro.config.mjs 里配的是 themes: { light: github-light, dark: github-dark }，
+   Shiki 会把两套颜色都写进内联 style：
+       <pre style="color:#24292e; --shiki-dark:#e1e4e8; background-color:#fff; --shiki-dark-bg:#24292e">
+       <span style="color:#24292e; --shiki-dark:#e1e4e8">
+   **但真正做切换的 CSS 要自己写**，Shiki 只负责输出变量。
+   少了这段，暗色模式下代码用的是浅色主题的深色文字，画在深色底上＝看不见。
+   （背景不在这里切换：代码块底色统一用 --code-bg，由 .code-block 控制）
+   ============================================================ */
+html.dark .astro-code,
+html.dark .astro-code span {
+  color: var(--shiki-dark) !important;
+  font-style: var(--shiki-dark-font-style, inherit) !important;
+  font-weight: var(--shiki-dark-font-weight, inherit) !important;
+  text-decoration: var(--shiki-dark-text-decoration, inherit) !important;
 }
 /* ⚠️ 这里**不要**再给"含公式的段落"单独加行高（不管是 CSS 的 :has() 还是 JS 量测）。
    试过两轮，都是把段落间距弄得比默认还难看，作者评价"还不如一开始的"。
@@ -1719,8 +1766,9 @@ body.lightbox-open {
 html.dark .post-board {
   box-shadow: 0 12px 15px 0 rgba(0, 0, 0, 0.5), 0 17px 50px 0 rgba(0, 0, 0, 0.4);
 }
+/* 正文两边的留白加大（作者要求"两边缝隙大一点"） */
 .post-board-inner {
-  padding: 3rem 3.25rem 3.5rem;
+  padding: 3.25rem 4.5rem 3.75rem;
 }
 @media (max-width: 1023px) {
   .post-board-inner {
@@ -1852,13 +1900,6 @@ html.dark .post-board {
 /* ============================================================
    设置面板驱动的几项
    ============================================================ */
-html.enable-card-border .cat-card,
-html.enable-card-border .board,
-html.enable-card-border .md-link-card,
-html.enable-card-border .fold,
-html.enable-card-border .md-tabs {
-  border: 1px solid var(--line);
-}
 html.card-follow-theme .board {
   background: color-mix(in oklab, var(--accent) 5%, var(--surface));
 }
@@ -2106,7 +2147,6 @@ body.search-open {
   .back-to-top,
   .search-modal,
   .skip-link,
-  #fireworks,
   .code-head,
   .copy-btn {
     display: none !important;
@@ -2158,67 +2198,103 @@ body.search-open {
 /* ============================================================
    同分类文章 —— 照搬 Firefly 的 SeriesNav
    ============================================================ */
+/* 作者："header 好简陋"。原来是一条浅灰底 + 18px 小图标 + 一行小字。
+   现在给标题栏建立层次：圆形主题色图标底 → 小号引导文字 → 加粗的系列名 →
+   描边式篇数胶囊 → 圆形箭头按钮，整条是一层极浅的主题色渐变。 */
 .series-nav {
-  margin: 0.75rem 0;
-  border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
-  border-radius: 0.75rem;
+  margin: 0.9rem 0;
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+  border-radius: 0.9rem;
   overflow: hidden;
+  box-shadow: var(--shadow-card);
 }
 .series-nav-toggle {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.7rem;
   width: 100%;
-  padding: 0.375rem 0.75rem;
+  padding: 0.6rem 0.8rem;
   border: 0;
-  border-radius: 0.5rem;
-  background: color-mix(in srgb, var(--fg) 5%, transparent);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent) 9%, var(--surface)),
+    color-mix(in srgb, var(--accent) 3%, var(--surface))
+  );
   color: var(--fg);
   font: inherit;
   text-align: left;
   cursor: pointer;
   user-select: none;
-  transition: background-color 0.15s;
+  transition: background 0.18s;
 }
 .series-nav-toggle:hover {
-  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent) 15%, var(--surface)),
+    color-mix(in srgb, var(--accent) 7%, var(--surface))
+  );
 }
 .series-nav-icon {
   display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
   color: var(--accent);
 }
 .series-nav-icon svg {
-  width: 1.15rem;
-  height: 1.15rem;
+  width: 1.05rem;
+  height: 1.05rem;
 }
 .series-nav-label {
-  font-size: 0.95rem;
-  color: color-mix(in srgb, var(--fg) 80%, transparent);
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  min-width: 0;
+  font-size: 0.8rem;
+  color: var(--muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .series-nav-label b {
+  font-size: 0.95rem;
   font-weight: 700;
+  color: var(--fg);
+  letter-spacing: 0.01em;
 }
 .series-nav-count {
   flex-shrink: 0;
-  padding: 0.125rem 0.5rem;
+  padding: 0.1rem 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 38%, transparent);
   border-radius: 9999px;
-  background: color-mix(in srgb, var(--fg) 8%, transparent);
-  color: var(--muted);
-  font-size: 0.75rem;
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 .series-nav-chevron {
   display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
   margin-left: auto;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
   color: var(--accent);
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, background-color 0.15s;
+}
+.series-nav-toggle:hover .series-nav-chevron {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
 }
 .series-nav-chevron svg {
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 1.1rem;
+  height: 1.1rem;
 }
 .series-nav[data-open='true'] .series-nav-chevron {
   transform: rotate(180deg);
@@ -2329,4 +2405,28 @@ a.series-nav-row:hover .series-nav-go {
 .md-link-card.is-internal .md-link-card-icon {
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 3v5h5'/%3E%3Cpath d='M15 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z'/%3E%3Cpath d='M9 13h6M9 17h4'/%3E%3C/svg%3E");
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 3v5h5'/%3E%3Cpath d='M15 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z'/%3E%3Cpath d='M9 13h6M9 17h4'/%3E%3C/svg%3E");
+}
+
+/* ============================================================
+   樱花特效画布
+   ------------------------------------------------------------
+   由 src/scripts/sakura.ts 动态创建并 transferControlToOffscreen() 给 Worker 绘制。
+   pointer-events: none 保证不挡点击；z-index 在正文之上、导航栏之下。
+   ============================================================ */
+.sakura-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 40;
+  transform: translateZ(0);
+}
+html.sakura-off .sakura-canvas {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sakura-canvas {
+    display: none;
+  }
 }

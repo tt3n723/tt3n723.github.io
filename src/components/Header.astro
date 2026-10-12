@@ -13,24 +13,17 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
 const isGroupActive = (item: (typeof NAV_LINKS)[number]) =>
   (item.children ?? []).some((child) => isActive(child.href));
 
-// 16 个色相预设（作者要求"主题还可以加更大的选项"）
+// 8 个经典色相（作者：预设不用那么多，几个经典的就行）。
+// 色相按 0 → 330 大致均匀分布，一行放得下。
 const hues = [
-  { label: '石榴红', value: 15 },
-  { label: '朱砂', value: 30 },
-  { label: '琥珀', value: 50 },
-  { label: '芥黄', value: 75 },
-  { label: '橄榄', value: 105 },
-  { label: '松绿', value: 145 },
-  { label: '翡翠', value: 168 },
-  { label: '青碧', value: 190 },
-  { label: '天青', value: 210 },
-  { label: '靛蓝', value: 250 },
-  { label: '琉璃', value: 265 },
-  { label: '紫罗兰', value: 285 },
-  { label: '紫棠', value: 305 },
-  { label: '品红', value: 330 },
-  { label: '玫红', value: 350 },
-  { label: '石墨', value: 0 },
+  { label: '红', value: 0 },
+  { label: '橙红', value: 25 },
+  { label: '琥珀', value: 60 },
+  { label: '绿', value: 160 },
+  { label: '青', value: 200 },
+  { label: '蓝', value: 230 },
+  { label: '靛蓝', value: 265 },
+  { label: '洋红', value: 330 },
 ];
 ---
 
@@ -146,10 +139,6 @@ const hues = [
       }
     </div>
 
-    <button type="button" class="switch-row" data-toggle="cardBorder" role="switch" aria-checked="false">
-      <span>卡片描边</span>
-      <span class="switch-track"><span class="switch-knob" /></span>
-    </button>
     <button type="button" class="switch-row" data-toggle="cardTheme" role="switch" aria-checked="false">
       <span>卡片跟随主题色</span>
       <span class="switch-track"><span class="switch-knob" /></span>
@@ -181,8 +170,8 @@ const hues = [
     </div>
 
     <p class="section-title">效果</p>
-    <button type="button" class="switch-row" data-toggle="fireworks" role="switch" aria-checked="true">
-      <span>首页烟花</span>
+    <button type="button" class="switch-row" data-toggle="sakura" role="switch" aria-checked="true">
+      <span>樱花特效</span>
       <span class="switch-track"><span class="switch-knob" /></span>
     </button>
 
@@ -296,7 +285,7 @@ const hues = [
     border-color: var(--glass-border);
     background: var(--glass-bg);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 8px 28px color-mix(in srgb, var(--accent) 14%, transparent);
-    backdrop-filter: blur(22px) saturate(1.8);
+    backdrop-filter: blur(24px) saturate(1.2);
   }
   html.dark .site-header.is-scrolled .site-nav {
     background: color-mix(in oklch, var(--surface) 52%, transparent);

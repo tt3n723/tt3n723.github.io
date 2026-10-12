@@ -183,7 +183,7 @@ int power(int a, int b) {
 
 ## 八、链接卡
 
-写法：`:::link[标题]{href="地址"}` … `:::`。
+写法：`:::link[标题]{href="https://example.com"}` … `:::`（把 `href` 换成你要链接的地址）。
 
 :::link[CSES Problem Set]{href="https://cses.fi/problemset/"}
 300 道题的题库，从入门到进阶都有，全部可以在线评测。
@@ -292,4 +292,4 @@ stateDiagram-v2
 ## 十五、脚注式的补充
 
 如果某段太长又不想删，就用折叠块包起来（见第六节）。
-这一页本身也是 `/lab` 那个 A/B 展台的"markdown 层"搭档。
+

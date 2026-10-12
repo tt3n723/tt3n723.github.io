@@ -48,14 +48,12 @@ const nextIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" str
   lastPage > 1 && (
     <nav class="pagination" aria-label="分页">
       {prevHref ? (
-        <a class="extend" href={prevHref} rel="prev">
+        <a class="extend" href={prevHref} rel="prev" aria-label="上一页" title="上一页">
           <Fragment set:html={prevIcon} />
-          <span class="extend-text">上一页</span>
         </a>
       ) : (
-        <span class="extend is-disabled" aria-disabled="true">
+        <span class="extend is-disabled" aria-disabled="true" aria-label="上一页">
           <Fragment set:html={prevIcon} />
-          <span class="extend-text">上一页</span>
         </span>
       )}
 
@@ -65,18 +63,16 @@ const nextIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" str
         ) : p === currentPage ? (
           <span class="page-number is-current" aria-current="page">{p}</span>
         ) : (
-          <a class="page-number" href={hrefFor(p)}>{p}</a>
+          <a class="page-number" href={hrefFor(p)} aria-label={`第 ${p} 页`}>{p}</a>
         ),
       )}
 
       {nextHref ? (
-        <a class="extend" href={nextHref} rel="next">
-          <span class="extend-text">下一页</span>
+        <a class="extend" href={nextHref} rel="next" aria-label="下一页" title="下一页">
           <Fragment set:html={nextIcon} />
         </a>
       ) : (
-        <span class="extend is-disabled" aria-disabled="true">
-          <span class="extend-text">下一页</span>
+        <span class="extend is-disabled" aria-disabled="true" aria-label="下一页">
           <Fragment set:html={nextIcon} />
         </span>
       )}

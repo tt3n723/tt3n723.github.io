@@ -128,7 +128,6 @@ const canonical = new URL(Astro.url.pathname, SITE_URL).href;
     </script>
   </head>
   <body class="min-h-screen bg-bg font-sans text-fg antialiased">
-    <canvas id="fireworks" class="pointer-events-none fixed inset-0 z-50" aria-hidden="true"></canvas>
     <Header />
 
     <Banner
@@ -165,7 +164,7 @@ const canonical = new URL(Astro.url.pathname, SITE_URL).href;
       import { initSearchModal } from '../scripts/search-modal';
       import { initBackToTop } from '../scripts/back-to-top';
       import { initTyped } from '../scripts/typed';
-      import { initFireworks } from '../scripts/fireworks';
+      import { initSakura } from '../scripts/sakura';
 
       // 用 astro:page-load 统一驱动：
       //   - 首次加载会触发一次
@@ -199,9 +198,9 @@ const canonical = new URL(Astro.url.pathname, SITE_URL).href;
         initSearchModal();
         initBackToTop();
         initTyped();
+        initSakura();
       }
 
-      initFireworks(); // 只挂在 document 上，切页后依然有效，不需要重跑
       document.addEventListener('astro:page-load', boot);
       // 兜底：万一 ClientRouter 没生效（astro:page-load 不触发），首屏也要能跑
       if (document.readyState === 'loading') {

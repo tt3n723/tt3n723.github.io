@@ -56,7 +56,10 @@ export function initMusic() {
     audio.addEventListener('play', paintToggle);
     audio.addEventListener('pause', paintToggle);
     audio.addEventListener('ended', () => load(index + 1, true));
-    document.body.appendChild(audio);
+    // ⚠️ **不要**把 audio 挂到 DOM 上。
+    // new Audio() 不插入文档也能正常播放；一旦 appendChild 到 body，
+    // ClientRouter 切页时会替换 body 的子节点（只保留 transition:persist 的那些），
+    // audio 被摘掉 → 音乐有时会中断。放在 JS 引用里最安全。
     return audio;
   };
 

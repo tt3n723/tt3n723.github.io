@@ -7,7 +7,7 @@
 #   - 项目站：仓库名任意                  → 网址是 https://<用户名>.github.io/<仓库名>
 #
 # 会对 <用户名>.github.io 这种**用户站**开箱即用。
-# 项目站还需要在 astro.config.mjs 里设 base（详见 GUIDE.md 的"部署"一节）。
+# 项目站还需要在 astro.config.mjs 里设 base。
 name: Deploy to GitHub Pages
 
 on:

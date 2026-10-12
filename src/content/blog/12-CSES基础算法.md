@@ -2625,7 +2625,7 @@ void solve() {
   $$
   \begin{aligned}
   \text{towers}[i][1]&=4\cdot\text{towers}[i-1][1]+\text{towers}[i-1][0],\\
-  \text{towers}[i][0]=\text{towers}[i-1][1]+2\cdot\text{towers}[i-1][0].
+  \text{towers}[i][0]&=\text{towers}[i-1][1]+2\cdot\text{towers}[i-1][0].
   \end{aligned}
   $$
   

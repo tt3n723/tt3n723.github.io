@@ -6,10 +6,9 @@ import { applyTheme } from './theme';
 
 const KEYS = {
   hue: 'hue',
-  cardBorder: 'cardBorderEnabled',
   cardTheme: 'cardFollowThemeEnabled',
   layout: 'postListLayout',
-  fireworks: 'fireworksEnabled',
+  sakura: 'sakuraEnabled',
   bannerMask: 'bannerMask',
   proseSize: 'proseSize',
   proseLeading: 'proseLeading',
@@ -40,7 +39,6 @@ export function initHeader() {
     header.querySelector<HTMLElement>(`.mobile-scrim[data-panel="${name}"]`);
 
   const closeAll = (except?: string) => {
-    panelsOpen = except !== undefined;
     for (const trigger of triggers) {
       const name = trigger.dataset.panelTrigger ?? '';
       const panel = panelFor(name);
@@ -83,18 +81,15 @@ export function initHeader() {
   // ---------- 3. 滚动 ----------
   let lastY = window.scrollY;
   let ticking = false;
-  let panelsOpen = false;
   const onScroll = () => {
     const y = window.scrollY;
     const delta = y - lastY;
 
     header.classList.toggle('is-scrolled', y > 8);
 
-    // 作者要求：滚动时把弹出的音乐/主题/文章下拉全部关掉
-    if (panelsOpen && Math.abs(delta) > 6) {
-      closeAll();
-      header.querySelectorAll('.nav-item.is-open').forEach((item) => item.classList.remove('is-open'));
-    }
+    // ⚠️ 这里**故意不关面板**。
+    // 之前做过"滚动就关闭音乐/主题面板"，但作者在拖色相滑杆时页面会轻微滚动，
+    // 结果面板当场关掉，体验很差。滚动与面板开合从此互不干涉。
 
     // 隐藏要"走够距离"才触发，阈值太小会在触控板上抖
     if (y > 200 && delta > 8) header.classList.add('is-hidden');
@@ -143,11 +138,6 @@ export function initHeader() {
       }
       if (persist) localStorage.setItem(KEYS.hue, hue);
     },
-    cardBorder(on: boolean, persist: boolean) {
-      document.documentElement.classList.toggle('enable-card-border', on);
-      setSwitch('cardBorder', on);
-      if (persist) localStorage.setItem(KEYS.cardBorder, String(on));
-    },
     cardTheme(on: boolean, persist: boolean) {
       document.documentElement.classList.toggle('card-follow-theme', on);
       setSwitch('cardTheme', on);
@@ -161,10 +151,13 @@ export function initHeader() {
       });
       if (persist) localStorage.setItem(KEYS.layout, mode);
     },
-    fireworks(on: boolean, persist: boolean) {
-      document.documentElement.classList.toggle('fireworks-off', !on);
-      setSwitch('fireworks', on);
-      if (persist) localStorage.setItem(KEYS.fireworks, String(on));
+    sakura(on: boolean, persist: boolean) {
+      // 关掉时给 <html> 打一个类，sakura.ts 读它决定要不要跑
+      document.documentElement.classList.toggle('sakura-off', !on);
+      setSwitch('sakura', on);
+      if (persist) localStorage.setItem(KEYS.sakura, String(on));
+      // 立刻生效：开→启动 worker，关→终止 worker 并移除 canvas
+      window.dispatchEvent(new CustomEvent('sakura:change', { detail: on }));
     },
     proseSize(value: string, persist: boolean) {
       document.documentElement.style.setProperty('--prose-scale', (Number(value) / 100).toFixed(3));
@@ -219,9 +212,8 @@ export function initHeader() {
     button.addEventListener('click', () => {
       const name = button.dataset.toggle ?? '';
       const next = button.getAttribute('aria-checked') !== 'true';
-      if (name === 'cardBorder') apply.cardBorder(next, true);
-      else if (name === 'cardTheme') apply.cardTheme(next, true);
-      else if (name === 'fireworks') apply.fireworks(next, true);
+      if (name === 'cardTheme') apply.cardTheme(next, true);
+      else if (name === 'sakura') apply.sakura(next, true);
     });
   });
   const bindRange = (id: string, fn: (v: string, p: boolean) => void) => {
@@ -238,10 +230,9 @@ export function initHeader() {
   header.querySelector<HTMLElement>('[data-settings-reset]')?.addEventListener('click', () => {
     Object.values(KEYS).forEach((key) => localStorage.removeItem(key));
     apply.hue(DEFAULTS.hue, false);
-    apply.cardBorder(false, false);
     apply.cardTheme(false, false);
     apply.layout('list', false);
-    apply.fireworks(true, false);
+    apply.sakura(true, false);
     apply.bannerMask(DEFAULTS.bannerMask, false);
     apply.proseSize(DEFAULTS.proseSize, false);
     apply.proseLeading(DEFAULTS.proseLeading, false);
@@ -250,10 +241,9 @@ export function initHeader() {
 
   // 每次渲染都把已保存的设置重新应用一遍
   apply.hue(localStorage.getItem(KEYS.hue) ?? DEFAULTS.hue, false);
-  apply.cardBorder(readSwitch(KEYS.cardBorder, false), false);
   apply.cardTheme(readSwitch(KEYS.cardTheme, false), false);
   apply.layout(localStorage.getItem(KEYS.layout) ?? 'list', false);
-  apply.fireworks(readSwitch(KEYS.fireworks, true), false);
+  apply.sakura(readSwitch(KEYS.sakura, true), false);
   apply.bannerMask(localStorage.getItem(KEYS.bannerMask) ?? DEFAULTS.bannerMask, false);
   apply.proseSize(localStorage.getItem(KEYS.proseSize) ?? DEFAULTS.proseSize, false);
   apply.proseLeading(localStorage.getItem(KEYS.proseLeading) ?? DEFAULTS.proseLeading, false);
