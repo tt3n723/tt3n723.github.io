@@ -71,6 +71,23 @@ const first = MUSIC_PLAYLIST[0];
     </div>
   </div>
 
+  <div class="music-volume">
+    <svg class="music-volume-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M4 9v6h3l5 4V5L7 9H4zm11.5 3a3.5 3.5 0 0 0-2-3.15v6.3A3.5 3.5 0 0 0 15.5 12z" />
+    </svg>
+    <input
+      class="music-volume-range"
+      type="range"
+      min="0"
+      max="100"
+      step="1"
+      value="70"
+      data-music-volume
+      aria-label="音量"
+    />
+    <output class="music-volume-value" data-music-volume-value>70%</output>
+  </div>
+
   <ol class="music-list">
     {
       MUSIC_PLAYLIST.map((track, index) => (
@@ -274,5 +291,65 @@ const first = MUSIC_PLAYLIST[0];
     flex-shrink: 0;
     color: var(--muted);
     font-size: 0.7rem;
+  }
+  /* ---- 音量 ---- */
+  .music-volume {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.6rem;
+  }
+  .music-volume-icon {
+    flex-shrink: 0;
+    width: 0.95rem;
+    height: 0.95rem;
+    color: var(--muted);
+  }
+  .music-volume-range {
+    flex: 1;
+    min-width: 0;
+    height: 1rem;
+    margin: 0;
+    padding: 0;
+    background: none;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+  }
+  .music-volume-range::-webkit-slider-runnable-track {
+    height: 0.22rem;
+    border-radius: 9999px;
+    background: color-mix(in srgb, var(--accent) calc(var(--volume-progress, 70) * 1%), var(--line));
+  }
+  .music-volume-range::-moz-range-track {
+    height: 0.22rem;
+    border-radius: 9999px;
+    background: color-mix(in srgb, var(--accent) calc(var(--volume-progress, 70) * 1%), var(--line));
+  }
+  .music-volume-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 0.8rem;
+    height: 0.8rem;
+    margin-top: -0.29rem;
+    border: 2px solid var(--surface);
+    border-radius: 9999px;
+    background: var(--accent);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  }
+  .music-volume-range::-moz-range-thumb {
+    width: 0.8rem;
+    height: 0.8rem;
+    border: 2px solid var(--surface);
+    border-radius: 9999px;
+    background: var(--accent);
+  }
+  .music-volume-value {
+    flex-shrink: 0;
+    min-width: 2.4rem;
+    color: var(--muted);
+    font-size: 0.7rem;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
   }
 </style>

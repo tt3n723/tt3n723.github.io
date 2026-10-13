@@ -6,10 +6,9 @@ import { applyTheme } from './theme';
 
 const KEYS = {
   hue: 'hue',
-  cardTheme: 'cardFollowThemeEnabled',
   layout: 'postListLayout',
   sakura: 'sakuraEnabled',
-  bannerMask: 'bannerMask',
+  fireworks: 'fireworksEnabled',
   proseSize: 'proseSize',
   proseLeading: 'proseLeading',
   codeSize: 'codeSize',
@@ -17,7 +16,6 @@ const KEYS = {
 
 const DEFAULTS = {
   hue: '265',
-  bannerMask: '30',
   proseSize: '100',
   proseLeading: '175',
   codeSize: '88',
@@ -113,8 +111,6 @@ export function initHeader() {
   // ---------- 4. 设置项 ----------
   const hueRange = document.getElementById('hue-range') as HTMLInputElement | null;
   const hueValue = document.getElementById('hue-value');
-  const maskRange = document.getElementById('banner-mask') as HTMLInputElement | null;
-  const maskValue = document.getElementById('banner-mask-value');
 
   const paintRange = (el: HTMLInputElement | null) => {
     if (!el) return;
@@ -137,11 +133,6 @@ export function initHeader() {
         paintRange(hueRange);
       }
       if (persist) localStorage.setItem(KEYS.hue, hue);
-    },
-    cardTheme(on: boolean, persist: boolean) {
-      document.documentElement.classList.toggle('card-follow-theme', on);
-      setSwitch('cardTheme', on);
-      if (persist) localStorage.setItem(KEYS.cardTheme, String(on));
     },
     layout(mode: string, persist: boolean) {
       document.documentElement.dataset.postLayout = mode;
@@ -192,28 +183,24 @@ export function initHeader() {
       }
       if (persist) localStorage.setItem(KEYS.codeSize, value);
     },
-    bannerMask(value: string, persist: boolean) {
-      const ratio = (Number(value) / 100).toFixed(2);
-      document.documentElement.style.setProperty('--banner-mask', ratio);
-      if (maskValue) maskValue.textContent = value + '%';
-      if (maskRange) {
-        maskRange.value = value;
-        paintRange(maskRange);
-      }
-      if (persist) localStorage.setItem(KEYS.bannerMask, value);
+    fireworks(on: boolean, persist: boolean) {
+      // 和樱花一样：给 <html> 打类，fireworks.ts 读它
+      document.documentElement.classList.toggle('fireworks-off', !on);
+      setSwitch('fireworks', on);
+      if (persist) localStorage.setItem(KEYS.fireworks, String(on));
+      window.dispatchEvent(new CustomEvent('fireworks:change', { detail: on }));
     },
   };
 
   // 绑定
   hueRange?.addEventListener('input', () => apply.hue(hueRange.value, true));
   header.querySelectorAll<HTMLElement>('[data-hue]').forEach((b) => b.addEventListener('click', () => apply.hue(b.dataset.hue ?? DEFAULTS.hue, true)));
-  maskRange?.addEventListener('input', () => apply.bannerMask(maskRange.value, true));
   header.querySelectorAll<HTMLElement>('[data-toggle]').forEach((button) => {
     button.addEventListener('click', () => {
       const name = button.dataset.toggle ?? '';
       const next = button.getAttribute('aria-checked') !== 'true';
-      if (name === 'cardTheme') apply.cardTheme(next, true);
-      else if (name === 'sakura') apply.sakura(next, true);
+      if (name === 'sakura') apply.sakura(next, true);
+      else if (name === 'fireworks') apply.fireworks(next, true);
     });
   });
   const bindRange = (id: string, fn: (v: string, p: boolean) => void) => {
@@ -230,10 +217,9 @@ export function initHeader() {
   header.querySelector<HTMLElement>('[data-settings-reset]')?.addEventListener('click', () => {
     Object.values(KEYS).forEach((key) => localStorage.removeItem(key));
     apply.hue(DEFAULTS.hue, false);
-    apply.cardTheme(false, false);
     apply.layout('list', false);
-    apply.sakura(true, false);
-    apply.bannerMask(DEFAULTS.bannerMask, false);
+    apply.sakura(false, false);
+    apply.fireworks(false, false);
     apply.proseSize(DEFAULTS.proseSize, false);
     apply.proseLeading(DEFAULTS.proseLeading, false);
     apply.codeSize(DEFAULTS.codeSize, false);
@@ -241,10 +227,9 @@ export function initHeader() {
 
   // 每次渲染都把已保存的设置重新应用一遍
   apply.hue(localStorage.getItem(KEYS.hue) ?? DEFAULTS.hue, false);
-  apply.cardTheme(readSwitch(KEYS.cardTheme, false), false);
   apply.layout(localStorage.getItem(KEYS.layout) ?? 'list', false);
-  apply.sakura(readSwitch(KEYS.sakura, true), false);
-  apply.bannerMask(localStorage.getItem(KEYS.bannerMask) ?? DEFAULTS.bannerMask, false);
+  apply.sakura(readSwitch(KEYS.sakura, false), false);
+  apply.fireworks(readSwitch(KEYS.fireworks, false), false);
   apply.proseSize(localStorage.getItem(KEYS.proseSize) ?? DEFAULTS.proseSize, false);
   apply.proseLeading(localStorage.getItem(KEYS.proseLeading) ?? DEFAULTS.proseLeading, false);
   apply.codeSize(localStorage.getItem(KEYS.codeSize) ?? DEFAULTS.codeSize, false);

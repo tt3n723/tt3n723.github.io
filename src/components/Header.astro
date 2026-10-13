@@ -22,6 +22,7 @@ const hues = [
   { label: '绿', value: 160 },
   { label: '青', value: 200 },
   { label: '蓝', value: 230 },
+  { label: '普鲁士蓝', value: 245 },
   { label: '靛蓝', value: 265 },
   { label: '洋红', value: 330 },
 ];
@@ -139,11 +140,6 @@ const hues = [
       }
     </div>
 
-    <button type="button" class="switch-row" data-toggle="cardTheme" role="switch" aria-checked="false">
-      <span>卡片跟随主题色</span>
-      <span class="switch-track"><span class="switch-knob" /></span>
-    </button>
-
     <p class="section-title">排版</p>
     <label class="setting-row" for="prose-size">
       <span>正文字号</span>
@@ -170,16 +166,15 @@ const hues = [
     </div>
 
     <p class="section-title">效果</p>
-    <button type="button" class="switch-row" data-toggle="sakura" role="switch" aria-checked="true">
+    <button type="button" class="switch-row" data-toggle="sakura" role="switch" aria-checked="false">
       <span>樱花特效</span>
       <span class="switch-track"><span class="switch-knob" /></span>
     </button>
 
-    <label class="setting-row" for="banner-mask">
-      <span>头图遮罩深度</span>
-      <output id="banner-mask-value">30%</output>
-    </label>
-    <input id="banner-mask" class="range" type="range" min="0" max="100" step="5" value="30" aria-label="头图遮罩深度" />
+    <button type="button" class="switch-row" data-toggle="fireworks" role="switch" aria-checked="false">
+      <span>点击烟花</span>
+      <span class="switch-track"><span class="switch-knob" /></span>
+    </button>
   </div>
 
   <div class="mobile-scrim" data-panel="menu" hidden></div>

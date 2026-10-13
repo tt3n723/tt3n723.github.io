@@ -58,7 +58,6 @@
      所以换一个色相，玻璃的颜色会跟着明显变。 */
   --glass-bg: oklch(0.87 0.085 var(--hue) / 0.72);
   --glass-border: oklch(0.75 0.11 var(--hue) / 0.5);
-  /* 导航栏毛玻璃：**带主题色**（比 --surface 明显更高的彩度）且足够浅 */
 }
 html.dark {
   --bg: oklch(0.17 0.012 var(--hue));
@@ -1900,9 +1899,6 @@ html.dark .post-board {
 /* ============================================================
    设置面板驱动的几项
    ============================================================ */
-html.card-follow-theme .board {
-  background: color-mix(in oklab, var(--accent) 5%, var(--surface));
-}
 /* 文章列表：网格模式 */
 html[data-post-layout='grid'] .board-inner {
   max-width: 76rem;
@@ -2413,6 +2409,14 @@ a.series-nav-row:hover .series-nav-go {
    由 src/scripts/sakura.ts 动态创建并 transferControlToOffscreen() 给 Worker 绘制。
    pointer-events: none 保证不挡点击；z-index 在正文之上、导航栏之下。
    ============================================================ */
+/* 点击烟花画布：由 src/scripts/fireworks.ts 动态创建。pointer-events:none 不挡点击。 */
+.fireworks-canvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+}
+
 .sakura-canvas {
   position: fixed;
   inset: 0;

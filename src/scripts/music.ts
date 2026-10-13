@@ -19,10 +19,35 @@ export function initMusic() {
   const toggleBtn = root.querySelector<HTMLElement>('[data-music-toggle]');
   const prevBtn = root.querySelector<HTMLElement>('[data-music-prev]');
   const nextBtn = root.querySelector<HTMLElement>('[data-music-next]');
+  const volumeEl = root.querySelector<HTMLInputElement>('[data-music-volume]');
+  const volumeOut = root.querySelector<HTMLElement>('[data-music-volume-value]');
 
   let index = 0;
   let audio: HTMLAudioElement | null = null;
   let seeking = false;
+
+  // ---- 音量：独立于站点其他设置，存在 localStorage，切页后保持 ----
+  const VOLUME_KEY = 'musicVolume';
+  const readVolume = () => {
+    const stored = localStorage.getItem(VOLUME_KEY);
+    // ⚠️ 必须先判 null：localStorage 没值时 Number(null) === 0，
+    //    直接拿去比较会得到"音量 0"，默认值永远用不上。
+    if (stored === null) return 0.7;
+    const raw = Number(stored);
+    // 没存过就默认 70%（不静音，也不至于吵）
+    return Number.isFinite(raw) && raw >= 0 && raw <= 1 ? raw : 0.7;
+  };
+  const applyVolume = (v: number, persist: boolean) => {
+    const clamped = Math.min(1, Math.max(0, v));
+    if (audio) audio.volume = clamped;
+    const pct = Math.round(clamped * 100);
+    if (volumeEl) {
+      volumeEl.value = String(pct);
+      volumeEl.style.setProperty('--volume-progress', String(pct));
+    }
+    if (volumeOut) volumeOut.textContent = pct + '%';
+    if (persist) localStorage.setItem(VOLUME_KEY, String(clamped));
+  };
 
   const formatTime = (seconds: number) => {
     if (!Number.isFinite(seconds) || seconds < 0) return '0:00';
@@ -51,6 +76,7 @@ export function initMusic() {
     if (audio) return audio;
     audio = new Audio();
     audio.preload = 'metadata';
+    audio.volume = readVolume(); // 新建时就把存过的音量套上
     audio.addEventListener('timeupdate', paintProgress);
     audio.addEventListener('loadedmetadata', paintProgress);
     audio.addEventListener('play', paintToggle);
@@ -93,6 +119,9 @@ export function initMusic() {
     if (player.paused) void player.play().catch(() => {});
     else player.pause();
   };
+
+  volumeEl?.addEventListener('input', () => applyVolume(Number(volumeEl.value) / 100, true));
+  applyVolume(readVolume(), false); // 首屏把滑杆位置和数字刷出来
 
   toggleBtn?.addEventListener('click', toggle);
   prevBtn?.addEventListener('click', () => load(index - 1, true));

@@ -165,6 +165,7 @@ const canonical = new URL(Astro.url.pathname, SITE_URL).href;
       import { initBackToTop } from '../scripts/back-to-top';
       import { initTyped } from '../scripts/typed';
       import { initSakura } from '../scripts/sakura';
+      import { initFireworks } from '../scripts/fireworks';
 
       // 用 astro:page-load 统一驱动：
       //   - 首次加载会触发一次
@@ -199,6 +200,7 @@ const canonical = new URL(Astro.url.pathname, SITE_URL).href;
         initBackToTop();
         initTyped();
         initSakura();
+        initFireworks(); // 默认不开（html.fireworks-off），设置面板里能打开
       }
 
       document.addEventListener('astro:page-load', boot);

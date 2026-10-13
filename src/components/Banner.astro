@@ -76,7 +76,8 @@ const {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background-color: rgba(0, 0, 0, var(--banner-mask, 0.3));
+    /* 遮罩深度默认 0（作者要求）—— 设置面板里已经没有这一项了 */
+    background-color: rgba(0, 0, 0, var(--banner-mask, 0));
     color: #fff;
   }
   .banner-text {
