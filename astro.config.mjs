@@ -20,8 +20,7 @@ export default defineConfig({
   site: SITE_URL,
   integrations: [
     mdx(),
-    // /lab 是内部样式展台，不进 sitemap
-    sitemap({ filter: (page) => !page.includes('/lab') }),
+    sitemap(),
   ],
   vite: {
     plugins: [tailwindcss()],

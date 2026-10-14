@@ -12,7 +12,7 @@ import { SITE_DESCRIPTION, SITE_HUE, SITE_TITLE, SITE_URL } from '../consts';
 interface Props {
   title?: string;
   description?: string;
-  /** 给 /lab 这类内部页面用：告诉搜索引擎不要收录 */
+  /** 内部页面用：告诉搜索引擎不要收录 */
   noindex?: boolean;
   /**
    * 容器宽度：
@@ -118,7 +118,7 @@ const canonical = new URL(Astro.url.pathname, SITE_URL).href;
           var dark = stored === 'dark' || (stored === 'auto' && prefersDark);
           document.documentElement.classList.toggle('dark', dark);
 
-          // /lab 的色相滑杆会把选择存在 localStorage.hue，这里优先用它，
+          // 设置面板的色相滑杆会把选择存在 localStorage.hue，这里优先用它，
           // 这样你挑选色相时可以带着它到处翻页。点「恢复默认」即可清除。
           var hue = localStorage.getItem('hue');
           if (hue) document.documentElement.style.setProperty('--hue', hue);
