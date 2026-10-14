@@ -99,10 +99,13 @@ const {
     margin-left: 0.04em;
     font-weight: 300;
     opacity: 0.85;
-    animation: caret-blink 1s steps(2, start) infinite;
+    /* 光标闪烁周期。原来是 1s —— 亮 0.5 秒、灭 0.5 秒，太懒了。
+       0.6s 是终端光标的常见节奏，干脆但不刺眼。 */
+    animation: caret-blink 0.6s steps(2, start) infinite;
   }
   .banner-title-typed.is-typing::after {
-    animation-duration: 0.7s;
+    /* 打字中再快一点，让光标"追着"字走 */
+    animation-duration: 0.4s;
   }
   @keyframes caret-blink {
     0%,

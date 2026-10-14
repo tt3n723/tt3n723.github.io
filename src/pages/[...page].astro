@@ -9,7 +9,7 @@ import { getCollection } from 'astro:content';
 import Pagination from '../components/Pagination.astro';
 import PostCard from '../components/PostCard.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { POSTS_PER_PAGE, SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+import { HOME_SUBTITLE, HOME_TITLE, POSTS_PER_PAGE, SITE_DESCRIPTION } from '../consts';
 
 export async function getStaticPaths({ paginate }: any) {
   const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
@@ -25,8 +25,8 @@ const isFirstPage = page.currentPage === 1;
 <BaseLayout
   title={isFirstPage ? undefined : `第 ${page.currentPage} 页`}
   description={SITE_DESCRIPTION}
-  bannerTitle={SITE_TITLE}
-  bannerSubtitle={SITE_DESCRIPTION}
+  bannerTitle={HOME_TITLE}
+  bannerSubtitle={HOME_SUBTITLE}
   bannerTyped
   width="wide"
 >

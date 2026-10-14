@@ -14,8 +14,6 @@ const first = MUSIC_PLAYLIST[0];
 {/* transition:persist 让这个节点在客户端路由切换时**不被销毁**，
            <audio> 和播放进度因此能跨页保留 */}
 <div class="music-player" data-music-player transition:persist="music-player">
-  <p class="panel-title">音乐</p>
-
   <div class="music-head">
     <div
       class="music-cover"
@@ -66,6 +64,26 @@ const first = MUSIC_PLAYLIST[0];
       <button type="button" class="music-btn" data-music-next aria-label="下一首" title="下一首">
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
           <path d="M15 6h2v12h-2zM5 6v12l9.5-6z" />
+        </svg>
+      </button>
+      <!-- 播放模式：列表循环 → 单曲循环 → 随机。三个图标靠 CSS 切换，DOM 只有一个按钮 -->
+      <button type="button" class="music-btn music-btn-mode" data-music-mode aria-label="播放模式：列表循环" title="播放模式：列表循环">
+        <svg class="music-icon-list" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M4 7h11v2H4zm0 4h11v2H4zm0 4h11v2H4zm14-9 4 3-4 3V6z" opacity=".85" />
+        </svg>
+        <svg class="music-icon-one" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M17 2.5 21 5l-4 2.5" />
+          <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+          <path d="M7 21.5 3 19l4-2.5" />
+          <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+          <path d="M11.5 10.5 13 9.8V15" />
+        </svg>
+        <svg class="music-icon-random" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M16 4h5v5" />
+          <path d="M4 20 21 4" />
+          <path d="M16 20h5v-5" />
+          <path d="M4 4l6 6" />
+          <path d="M15 15l6 5" />
         </svg>
       </button>
     </div>
@@ -351,5 +369,18 @@ const first = MUSIC_PLAYLIST[0];
     font-size: 0.7rem;
     font-variant-numeric: tabular-nums;
     text-align: right;
+  }
+  /* ---- 播放模式按钮：三个图标只显示当前那个 ---- */
+  .music-btn-mode svg {
+    display: none;
+  }
+  .music-player[data-play-mode='list'] .music-icon-list,
+  .music-player[data-play-mode='one'] .music-icon-one,
+  .music-player[data-play-mode='random'] .music-icon-random {
+    display: block;
+  }
+  .music-player[data-play-mode='one'] .music-btn-mode,
+  .music-player[data-play-mode='random'] .music-btn-mode {
+    color: var(--accent);
   }
 </style>

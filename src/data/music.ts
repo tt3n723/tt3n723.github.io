@@ -18,8 +18,23 @@ export interface MusicTrack {
 
 export const MUSIC_PLAYLIST: MusicTrack[] = [
   {
+    title: 'Safe Haven',
+    artist: 'Garoad',
+    src: '/music/Garoad - Safe Haven.mp3',
+  },
+  {
     title: 'Luvsick',
     artist: 'Collin Lim',
     src: '/music/Collin Lim - Luvsick.mp3',
   },
+  {
+    title: '三葉のテーマ',
+    artist: 'RADWIMPS',
+    src: '/music/RADWIMPS - 三葉のテーマ.mp3',
+  },
+  {
+    title: 'サニーボーイ・ラプソディ',
+    artist: 'toe',
+    src: '/music/toe - サニーボーイ・ラプソディ.mp3',
+  }
 ];

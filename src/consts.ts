@@ -1,7 +1,17 @@
 // 全站常量：改这里的文字就能改站点信息，不需要动组件。
+// ── 站名 vs 首页标语：**故意分成两组** ──────────────────────
+// 之前只有一个 SITE_TITLE，改首页标语会连导航栏左上角一起改掉。
+// 现在分开了：
+//   SITE_*  → 导航栏、浏览器标签页、og:site_name、RSS
+//   HOME_*  → 只影响首页头图的那两行字
 export const SITE_TITLE = 'Wizard Note';
+export const HOME_TITLE = 'Believe in Me Who Believes in You';
+export const HOME_SUBTITLE = '算法笔记与刷题记录';
+
+// 站点的通用描述：给搜索引擎的 meta description 和 RSS 用。
+// 和首页副标题是两回事 —— 那个是 HOME_SUBTITLE。
 export const SITE_DESCRIPTION = '算法笔记与刷题记录';
-export const SITE_AUTHOR = 'w42s2tflx';
+export const SITE_AUTHOR = 'tt3n722';
 // 站点绝对地址。构建时可以用环境变量覆盖：
 //   SITE_URL=https://你的用户名.github.io pnpm build
 // GitHub Actions 里会自动注入（见 .github/workflows/deploy.yml），
@@ -23,13 +33,8 @@ export const NAV_LINKS: {
   children?: { href: string; label: string }[];
 }[] = [
   { href: '/', label: '主页' },
-  {
-    label: '文章',
-    children: [
-      { href: '/archive', label: '归档' },
-      { href: '/categories', label: '分类' },
-      { href: '/tags', label: '标签' },
-    ],
-  },
+  { href: '/archive', label: '归档' },
+  { href: '/categories', label: '分类' },
+  { href: '/tags', label: '标签' },
   { href: '/about', label: '关于' },
 ];

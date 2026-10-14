@@ -15,6 +15,17 @@ const isGroupActive = (item: (typeof NAV_LINKS)[number]) =>
 
 // 8 个经典色相（作者：预设不用那么多，几个经典的就行）。
 // 色相按 0 → 330 大致均匀分布，一行放得下。
+// 纸面色调预设。和「主题色相」是**两件独立的事**，可以自由组合
+// （比如「暖纸 + 靛蓝主题色」）。改的是 --paper-h / --paper-c。
+const palettes = [
+  { label: '默认', value: 'default', bg: 'oklch(0.975 0.005 var(--hue))' },
+  { label: '暖纸', value: 'warm', bg: 'oklch(0.975 0.028 68)' },
+  { label: '护眼绿', value: 'green', bg: 'oklch(0.975 0.03 148)' },
+  { label: '雾青', value: 'mist', bg: 'oklch(0.975 0.02 198)' },
+  { label: '藕荷', value: 'rose', bg: 'oklch(0.975 0.016 18)' },
+  { label: '纯灰', value: 'plain', bg: 'oklch(0.975 0 0)' },
+];
+
 const hues = [
   { label: '红', value: 0 },
   { label: '橙红', value: 25 },
@@ -115,7 +126,7 @@ const hues = [
 
   <div class="float-panel panel-wide" id="panel-settings" data-panel="settings" hidden>
     <div class="panel-head">
-      <p class="panel-title">设置</p>
+      <p class="section-title">外观</p>
       <button type="button" class="panel-reset" data-settings-reset aria-label="恢复默认设置" title="恢复默认设置">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M3 12a9 9 0 1 0 3-6.7" />
@@ -124,7 +135,22 @@ const hues = [
       </button>
     </div>
 
-    <p class="section-title">外观</p>
+    <label class="setting-row"><span>纸面色调</span></label>
+    <div class="palette-presets">
+      {
+        palettes.map((p) => (
+          <button
+            type="button"
+            class="palette-swatch"
+            data-palette={p.value}
+            title={p.label}
+            aria-label={p.label}
+          >
+            <span style={`background: ${p.bg}`} />
+          </button>
+        ))
+      }
+    </div>
     <label class="setting-row" for="hue-range">
       <span>主题色相</span>
       <output id="hue-value">{SITE_HUE}</output>
@@ -229,6 +255,8 @@ const hues = [
     left: 0;
     right: 0;
     z-index: 60;
+    /* F（优化版）：四周留出内边距 —— 导航栏从视口顶边"脱开"一点，
+       这样上方两个圆角才看得见。 */
     padding: 0.5rem;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.22s ease;
   }
@@ -285,6 +313,23 @@ const hues = [
   html.dark .site-header.is-scrolled .site-nav {
     background: color-mix(in oklch, var(--surface) 52%, transparent);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 8px 26px rgba(0, 0, 0, 0.3);
+  }
+  /* 滚动后也用白字（和顶部态一致）。
+     因为玻璃底色已经很淡（--glass-bg 的透明度 0.15），
+     深色字压在"透上来的背景"上会读不清，索性用白字 + 一层暗描边。 */
+  .site-header.is-scrolled .brand,
+  .site-header.is-scrolled .nav-link,
+  .site-header.is-scrolled .icon-btn {
+    color: rgba(255, 255, 255, 0.96);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5), 0 0 12px rgba(0, 0, 0, 0.25);
+  }
+  .site-header.is-scrolled .brand:hover,
+  .site-header.is-scrolled .nav-link:hover,
+  .site-header.is-scrolled .nav-link.is-active,
+  .site-header.is-scrolled .icon-btn:hover,
+  .site-header.is-scrolled .icon-btn[aria-expanded='true'] {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.16);
   }
   /* 顶部透明态下，下拉菜单仍然是实底的 */
   .site-header:not(.is-scrolled) .nav-dropdown {
@@ -458,23 +503,16 @@ const hues = [
   .float-panel[hidden] {
     display: none;
   }
-  .panel-title {
-    margin-bottom: 0.4rem;
-    font-size: 0.58rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-  /* 面板标题行：标题在左，恢复默认的小按钮在右 */
+  /* 面板顶行：「外观」标题在左，「恢复默认」按钮在右，同一行 */
   .panel-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
     margin-bottom: 0.35rem;
   }
-  .panel-head .panel-title {
-    margin-bottom: 0;
+  /* 顶行里的标题不要上下 margin —— 那会让这一行被撑开 */
+  .panel-head .section-title {
+    margin: 0;
   }
   .panel-reset {
     display: flex;
@@ -775,5 +813,35 @@ const hues = [
     .site-header {
       display: none;
     }
+  }
+  /* ---- 纸面色调：方形色块，和下面圆形的"主题色相"区分开 ---- */
+  .palette-presets {
+    display: flex;
+    gap: 0.4rem;
+    margin: 0.3rem 0 0.9rem;
+  }
+  .palette-swatch {
+    width: 1.85rem;
+    height: 1.85rem;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 0.45rem;
+    background: none;
+    cursor: pointer;
+    overflow: hidden;
+    transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+  }
+  .palette-swatch > span {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .palette-swatch:hover {
+    border-color: var(--accent);
+    transform: translateY(-1px);
+  }
+  .palette-swatch.is-active {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 32%, transparent);
   }
 </style>

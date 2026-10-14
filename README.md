@@ -81,8 +81,8 @@ pnpm preview      # → http://localhost:5174
 
 ```ts
 export const SITE_TITLE = 'Wizard Note';        // 站名（导航栏左上角）
-export const SITE_DESCRIPTION = '算法笔记与刷题记录';
-export const SITE_AUTHOR = 'w42s2tflx';         // 页脚版权
+export const SITE_DESCRIPTION = '';
+export const SITE_AUTHOR = '';         // 页脚版权
 export const SITE_HUE = 265;                    // 全站色相，见下一节
 export const POSTS_PER_PAGE = 9;                // 首页每页几篇
 export const NAV_LINKS = [ ... ];               // 导航栏，带 children 的会变下拉菜单
@@ -259,8 +259,6 @@ pnpm preview      # → http://localhost:5174
   git config --global user.email "你的邮箱"
   ```
 
-- **能连上 GitHub**。国内网络受限时见[排错](#四排错)里的"连不上 GitHub"。
-
 #### 第 1 步 · 在 GitHub 建仓库
 
 登录 GitHub → 右上角 **+** → **New repository**，然后：
@@ -347,97 +345,6 @@ git push -u origin main
    ```
 2. 到你的域名服务商加一条 **CNAME 记录**，指向 `<你的用户名>.github.io`
 3. 仓库 **Settings → Pages → Custom domain** 填上同一个域名，勾选 **Enforce HTTPS**
-
----
-
-### 四、排错
-
-<details>
-<summary><b>推送成功、Actions 也绿了，但网页还是旧的</b></summary>
-
-浏览器缓存。按 `Ctrl + Shift + R` 强制刷新，或者开无痕窗口看。
-GitHub Pages 本身也有几十秒的 CDN 缓存。
-
-</details>
-
-<details>
-<summary><b>Actions 红叉：<code>ERR_PNPM_OUTDATED_LOCKFILE</code></b></summary>
-
-`package.json` 改了但 `pnpm-lock.yaml` 没一起提交。在本地跑一次：
-
-```bash
-pnpm install
-git add -A && git commit -m "同步锁文件" && git push
-```
-
-</details>
-
-<details>
-<summary><b>Actions 红叉：其它构建错误</b></summary>
-
-点进那次失败的运行，展开红色的步骤看日志。
-最快的复现方式是**在本地跑一遍一模一样的命令**：
-
-```bash
-pnpm install --frozen-lockfile
-pnpm build
-```
-
-本地报的错就是 CI 报的错。
-
-</details>
-
-<details>
-<summary><b>线上一直 404</b></summary>
-
-多半是**第 4 步没做** —— 回仓库 **Settings → Pages**，确认 **Source 是 `GitHub Actions`**。
-选成 "Deploy from a branch" 的话，Actions 跑得再成功也不会发布。
-
-</details>
-
-<details>
-<summary><b><code>git push</code> 连不上 github.com</b></summary>
-
-两种办法，任选一种：
-
-**用代理**（本地有 HTTP 代理时）：
-
-```bash
-git config --global http.proxy http://127.0.0.1:7892
-git config --global https.proxy http://127.0.0.1:7892
-```
-
-撤销：把上面命令里的地址去掉再执行一次，或 `git config --global --unset http.proxy`。
-
-**用 SSH**（更稳，推荐）：
-
-```bash
-ssh-keygen -t ed25519 -C "你的邮箱"     # 一路回车
-cat ~/.ssh/id_ed25519.pub                # 复制输出的公钥
-```
-
-把公钥粘到 GitHub → **Settings → SSH and GPG keys → New SSH key**，然后：
-
-```bash
-ssh -T git@github.com                    # 看到 "successfully authenticated" 就成了
-git remote set-url origin git@github.com:<用户名>/<用户名>.github.io.git
-```
-
-</details>
-
-<details>
-<summary><b>本地 <code>pnpm dev</code> 起不来：<code>listen EACCES</code></b></summary>
-
-不是代码问题 —— Windows 会把一批端口动态划进「保留区间」，落在里面的端口绑不上。
-查当前区间：
-
-```powershell
-netsh interface ipv4 show excludedportrange protocol=tcp
-```
-
-换一个不在区间里的端口即可（[`astro.config.mjs`](astro.config.mjs) 里的 `server.port`）。
-
-</details>
 
 ---
 

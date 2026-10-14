@@ -19,6 +19,7 @@ export function initMusic() {
   const toggleBtn = root.querySelector<HTMLElement>('[data-music-toggle]');
   const prevBtn = root.querySelector<HTMLElement>('[data-music-prev]');
   const nextBtn = root.querySelector<HTMLElement>('[data-music-next]');
+  const modeBtn = root.querySelector<HTMLElement>('[data-music-mode]');
   const volumeEl = root.querySelector<HTMLInputElement>('[data-music-volume]');
   const volumeOut = root.querySelector<HTMLElement>('[data-music-volume-value]');
 
@@ -81,12 +82,49 @@ export function initMusic() {
     audio.addEventListener('loadedmetadata', paintProgress);
     audio.addEventListener('play', paintToggle);
     audio.addEventListener('pause', paintToggle);
-    audio.addEventListener('ended', () => load(index + 1, true));
+    // 播放结束时按当前模式决定下一首（在 applyPlayMode 里读取）
+    audio.addEventListener('ended', onEnded);
     // ⚠️ **不要**把 audio 挂到 DOM 上。
     // new Audio() 不插入文档也能正常播放；一旦 appendChild 到 body，
     // ClientRouter 切页时会替换 body 的子节点（只保留 transition:persist 的那些），
     // audio 被摘掉 → 音乐有时会中断。放在 JS 引用里最安全。
     return audio;
+  };
+
+  // ---- 播放模式：列表循环 / 单曲循环 / 随机 ----
+  const MODE_KEY = 'musicPlayMode';
+  const MODES = ['list', 'one', 'random'] as const;
+  type PlayMode = (typeof MODES)[number];
+  const MODE_LABEL: Record<PlayMode, string> = {
+    list: '列表循环',
+    one: '单曲循环',
+    random: '随机播放',
+  };
+  const readMode = (): PlayMode => {
+    const raw = localStorage.getItem(MODE_KEY);
+    return (MODES as readonly string[]).includes(raw ?? '') ? (raw as PlayMode) : 'list';
+  };
+  const applyPlayMode = (mode: PlayMode, persist: boolean) => {
+    root.dataset.playMode = mode;
+    const label = '播放模式：' + MODE_LABEL[mode];
+    modeBtn?.setAttribute('aria-label', label);
+    modeBtn?.setAttribute('title', label);
+    if (persist) localStorage.setItem(MODE_KEY, mode);
+  };
+  const onEnded = () => {
+    const mode = readMode();
+    if (mode === 'one') {
+      // 单曲循环：重播当前这首（load 会重设 src，所以从 0 开始）
+      load(index, true);
+      return;
+    }
+    if (mode === 'random' && items.length > 1) {
+      let next = index;
+      while (next === index) next = Math.floor(Math.random() * items.length);
+      load(next, true);
+      return;
+    }
+    load(index + 1, true);
   };
 
   const load = (next: number, autoplay: boolean) => {
@@ -119,6 +157,12 @@ export function initMusic() {
     if (player.paused) void player.play().catch(() => {});
     else player.pause();
   };
+
+  modeBtn?.addEventListener('click', () => {
+    const i = MODES.indexOf(readMode());
+    applyPlayMode(MODES[(i + 1) % MODES.length]!, true);
+  });
+  applyPlayMode(readMode(), false);
 
   volumeEl?.addEventListener('input', () => applyVolume(Number(volumeEl.value) / 100, true));
   applyVolume(readVolume(), false); // 首屏把滑杆位置和数字刷出来

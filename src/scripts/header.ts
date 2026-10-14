@@ -6,6 +6,7 @@ import { applyTheme } from './theme';
 
 const KEYS = {
   hue: 'hue',
+  palette: 'paperPalette',
   layout: 'postListLayout',
   sakura: 'sakuraEnabled',
   fireworks: 'fireworksEnabled',
@@ -125,6 +126,14 @@ export function initHeader() {
   };
 
   const apply = {
+    // 纸面色调：改 <html data-palette>，具体色值在 global.css 里的 --paper-h / --paper-c
+    palette(name: string, persist: boolean) {
+      document.documentElement.dataset.palette = name;
+      header.querySelectorAll<HTMLElement>('[data-palette]').forEach((el) => {
+        el.classList.toggle('is-active', el.dataset.palette === name);
+      });
+      if (persist) localStorage.setItem(KEYS.palette, name);
+    },
     hue(hue: string, persist: boolean) {
       document.documentElement.style.setProperty('--hue', hue);
       if (hueValue) hueValue.textContent = hue;
@@ -195,6 +204,7 @@ export function initHeader() {
   // 绑定
   hueRange?.addEventListener('input', () => apply.hue(hueRange.value, true));
   header.querySelectorAll<HTMLElement>('[data-hue]').forEach((b) => b.addEventListener('click', () => apply.hue(b.dataset.hue ?? DEFAULTS.hue, true)));
+  header.querySelectorAll<HTMLElement>('[data-palette]').forEach((b) => b.addEventListener('click', () => apply.palette(b.dataset.palette ?? 'default', true)));
   header.querySelectorAll<HTMLElement>('[data-toggle]').forEach((button) => {
     button.addEventListener('click', () => {
       const name = button.dataset.toggle ?? '';
@@ -218,6 +228,7 @@ export function initHeader() {
     Object.values(KEYS).forEach((key) => localStorage.removeItem(key));
     apply.hue(DEFAULTS.hue, false);
     apply.layout('list', false);
+    apply.palette('default', false);
     apply.sakura(false, false);
     apply.fireworks(false, false);
     apply.proseSize(DEFAULTS.proseSize, false);
@@ -227,6 +238,7 @@ export function initHeader() {
 
   // 每次渲染都把已保存的设置重新应用一遍
   apply.hue(localStorage.getItem(KEYS.hue) ?? DEFAULTS.hue, false);
+  apply.palette(localStorage.getItem(KEYS.palette) ?? 'default', false);
   apply.layout(localStorage.getItem(KEYS.layout) ?? 'list', false);
   apply.sakura(readSwitch(KEYS.sakura, false), false);
   apply.fireworks(readSwitch(KEYS.fireworks, false), false);

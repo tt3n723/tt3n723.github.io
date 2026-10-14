@@ -24,11 +24,11 @@ export function initTyped() {
       el.textContent = text.slice(0, i);
       if (i < text.length) {
         // 90–140ms 一个字符，带点随机才不像机器
-        setTimeout(step, 90 + Math.random() * 50);
+        setTimeout(step, 50 + Math.random() * 25);
       } else {
         el.classList.remove('is-typing');
       }
     };
-    setTimeout(step, 350);
+    setTimeout(step, 250);
   });
 }

@@ -6,7 +6,6 @@ import Banner from '../components/Banner.astro';
 import 'katex/dist/katex.min.css';
 import 'katex/dist/contrib/mhchem.mjs'; // 支持 \ce{} 化学式
 import '../styles/global.css';
-import Footer from '../components/Footer.astro';
 import Header from '../components/Header.astro';
 import { SITE_DESCRIPTION, SITE_HUE, SITE_TITLE, SITE_URL } from '../consts';
 
@@ -128,6 +127,7 @@ const canonical = new URL(Astro.url.pathname, SITE_URL).href;
     </script>
   </head>
   <body class="min-h-screen bg-bg font-sans text-fg antialiased">
+    <div class="reading-progress" aria-hidden="true"><span data-progress-bar></span></div>
     <Header />
 
     <Banner
@@ -146,7 +146,6 @@ const canonical = new URL(Astro.url.pathname, SITE_URL).href;
 
     <BackToTop />
 
-    <Footer />
     <script>
       import { initHeader } from '../scripts/header';
       import { initTheme } from '../scripts/theme';
@@ -166,6 +165,7 @@ const canonical = new URL(Astro.url.pathname, SITE_URL).href;
       import { initTyped } from '../scripts/typed';
       import { initSakura } from '../scripts/sakura';
       import { initFireworks } from '../scripts/fireworks';
+      import { initProgress } from '../scripts/progress';
 
       // 用 astro:page-load 统一驱动：
       //   - 首次加载会触发一次
@@ -201,6 +201,7 @@ const canonical = new URL(Astro.url.pathname, SITE_URL).href;
         initTyped();
         initSakura();
         initFireworks(); // 默认不开（html.fireworks-off），设置面板里能打开
+        initProgress(); // 顶部阅读进度条
       }
 
       document.addEventListener('astro:page-load', boot);

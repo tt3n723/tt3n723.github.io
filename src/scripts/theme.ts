@@ -5,6 +5,8 @@
 const STORAGE_KEY = 'theme';
 
 export function applyTheme(mode: 'light' | 'dark') {
+  // 说明：曾经试过"切换时颜色过渡 0.15s"（lab 的 ⑨ B 方案），作者觉得不行，已撤掉。
+  // 现在是**瞬间切换**。
   document.documentElement.classList.toggle('dark', mode === 'dark');
   document.dispatchEvent(new CustomEvent('theme-set', { detail: { dark: mode === 'dark' } }));
 }

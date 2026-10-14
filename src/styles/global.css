@@ -40,13 +40,29 @@
    整个站的配色由「一个色相」驱动：所有颜色都是 oklch(明度 彩度 var(--hue))。
    --hue 由 BaseLayout 写在 <html style="--hue: N"> 上，设置面板也能改。
    ============================================================ */
+/* ============================================================
+   纸面色调（--paper-h / --paper-c）
+   ------------------------------------------------------------
+   「纸」的颜色和「主题色相 --hue」是**两件独立的事**：
+     --paper-h = 纸的色相      --paper-c = 纸的彩度（0 = 纯灰）
+   拆开之后才能自由组合 —— 比如「暖纸 + 靛蓝主题色」。
+   --bg / --surface / --fg / --muted / --line 全部由这两个变量算出来。
+   ============================================================ */
+:root,
+html[data-palette='default'] { --paper-h: var(--hue); --paper-c: 0.005; }
+html[data-palette='warm']  { --paper-h: 68;  --paper-c: 0.028; }   /* 暖纸 · 琥珀（lab 的 C） */
+html[data-palette='green'] { --paper-h: 148; --paper-c: 0.03;  }   /* 护眼绿 · 豆沙 */
+html[data-palette='mist']  { --paper-h: 198; --paper-c: 0.02;  }   /* 雾青 */
+html[data-palette='rose']  { --paper-h: 18;  --paper-c: 0.016; }   /* 藕荷 · 淡粉 */
+html[data-palette='plain'] { --paper-h: var(--hue); --paper-c: 0; } /* 纯灰 */
+
 :root {
   --hue: 265;
-  --bg: oklch(0.975 0.004 var(--hue));
-  --surface: oklch(0.995 0.002 var(--hue));
-  --fg: oklch(0.24 0.02 var(--hue));
-  --muted: oklch(0.53 0.02 var(--hue));
-  --line: oklch(0.9 0.008 var(--hue));
+  --bg: oklch(0.975 var(--paper-c) var(--paper-h));
+  --surface: oklch(0.995 calc(var(--paper-c) * 0.45) var(--paper-h));
+  --fg: oklch(0.24 calc(var(--paper-c) * 1.4) var(--paper-h));
+  --muted: oklch(0.53 calc(var(--paper-c) * 1.3) var(--paper-h));
+  --line: oklch(0.9 calc(var(--paper-c) * 2.2) var(--paper-h));
   --accent: oklch(0.55 0.17 var(--hue));
   --accent-fg: #fff;
   --code-bg: oklch(0.985 0.003 var(--hue));
@@ -56,22 +72,22 @@
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06);
   /* 导航栏毛玻璃：**用主题色本身的浅色调 + 透明度**（而不是把主题色掺进白色里），
      所以换一个色相，玻璃的颜色会跟着明显变。 */
-  --glass-bg: oklch(0.87 0.085 var(--hue) / 0.72);
+  --glass-bg: oklch(0.3 0.06 var(--hue) / 0.72);
   --glass-border: oklch(0.75 0.11 var(--hue) / 0.5);
 }
 html.dark {
-  --bg: oklch(0.17 0.012 var(--hue));
-  --surface: oklch(0.215 0.014 var(--hue));
-  --fg: oklch(0.93 0.008 var(--hue));
-  --muted: oklch(0.68 0.015 var(--hue));
-  --line: oklch(0.31 0.016 var(--hue));
+  --bg: oklch(0.17 calc(var(--paper-c) * 0.55) var(--paper-h));
+  --surface: oklch(0.215 calc(var(--paper-c) * 0.65) var(--paper-h));
+  --fg: oklch(0.93 calc(var(--paper-c) * 0.4) var(--paper-h));
+  --muted: oklch(0.68 calc(var(--paper-c) * 0.6) var(--paper-h));
+  --line: oklch(0.31 calc(var(--paper-c) * 0.8) var(--paper-h));
   --accent: oklch(0.72 0.14 var(--hue));
   --accent-fg: oklch(0.16 0.02 var(--hue));
   --code-bg: oklch(0.205 0.014 var(--hue));
   --code-head-bg: oklch(0.245 0.016 var(--hue));
   --code-label: oklch(0.66 0.02 var(--hue));
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3);
-  --glass-bg: oklch(0.42 0.09 var(--hue) / 0.72);
+  --glass-bg: oklch(0.3 0.06 var(--hue) / 0.72);
   --glass-border: oklch(0.55 0.10 var(--hue) / 0.4);
 }
 
@@ -841,9 +857,17 @@ html.dark .board {
   color: var(--muted);
 }
 .toc-scroll {
-  /* 收住高度：右下角有"回到顶部"按钮（bottom 1.25rem + 2.75rem 高），
-     目录卡片必须在上方收尾，否则会压住它 */
-  max-height: calc(100vh - 17rem);
+  /* 收住高度：右下角有"回到顶部"按钮，目录卡片必须在它上方收尾。
+     ── 这个值怎么算出来的 ──
+       卡片顶边       sticky top = 5.2rem
+       卡片非滚动部分  内边距 1.6rem + 标题 ≈ 60px
+       按钮顶边       100vh − 1.25rem(bottom) − 2.75rem(高) = 100vh − 4rem
+     要让卡片底 < 按钮顶：
+       max-height ≤ 100vh − 4rem − 5.2rem − 60px − 安全间隙
+     取安全间隙 31px，代入得 100vh − 14rem。
+     这样留出的间隙恒为 31px，和视口高度无关。
+     （原来写 17rem，白留了 88px 没用上。） */
+  max-height: calc(100vh - 14rem);
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior: contain;
@@ -2135,7 +2159,6 @@ body.search-open {
    ============================================================ */
 @media print {
   header,
-  footer,
   .toc-aside,
   .cat-bar,
   .post-neighbors,
@@ -2433,4 +2456,26 @@ html.sakura-off .sakura-canvas {
   .sakura-canvas {
     display: none;
   }
+}
+
+/* ============================================================
+   顶部阅读进度条（lab ⑩）
+   固定在视口最顶部，z-index 100 —— 比导航栏(60)、浮层(70~90) 都高。
+   ============================================================ */
+.reading-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  z-index: 100;
+  pointer-events: none;
+  background: transparent;
+}
+.reading-progress > span {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--accent);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 55%, transparent);
 }

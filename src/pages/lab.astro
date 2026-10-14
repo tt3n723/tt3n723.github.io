@@ -15,6 +15,16 @@ const huePresets = [
   { label: '紫', value: 300 },
 ];
 
+// ⑤ 顶部导航的新变体（D~H）。每条都会渲染两个状态：压在头图上 / 滚动后。
+const navVariants = [
+  { key: 'd', tag: 'D · 通栏实底（贴顶）', note: '不透明 --surface，底边一条细线，方角。最"是网页一部分"的一种。' },
+  { key: 'e', tag: 'E · 只有一条细线', note: '完全没有底色，只靠底边一条 1px 细线和内容分开。最轻。' },
+  { key: 'f', tag: 'F · 深色主题实底', note: '不透明的深主题色 + 白字。和像素画头图是同一个语汇。' },
+  { key: 'g', tag: 'G · 胶囊 + 纯投影（无边框）', note: '保持现在的胶囊形状，但去掉边框、只用中性投影浮起来。' },
+  { key: 'h', tag: 'H · 半透明贴顶（无圆角）', note: '主题色浅调 55% + 模糊，方角贴顶。半透明系里最"厚"的一种。' },
+];
+const navLinks = ['首页', '文章', '搜索', '关于'];
+
 const posts = (await getCollection('blog')).sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
@@ -175,6 +185,37 @@ const palettes = [
         <span class="ab-tag c">C · Reimu：通栏 + 阴影 + 滚动隐藏</span>
         <div class="nav-c"><b>Wizard Note</b><span class="nav-links"><a>首页</a><a>文章</a><a>搜索</a><a>关于</a></span></div>
       </div>
+
+      {
+        navVariants.map((v) => (
+          <div class="ab-v">
+            <span class:list={['ab-tag', v.key]}>{v.tag}</span>
+            <div class="nav-pair">
+              <div class="nav-over">
+                <div class:list={['nav-x', `nav-${v.key}`]}>
+                  <b>Wizard Note</b>
+                  <span class="nav-links">
+                    {navLinks.map((label) => (
+                      <a>{label}</a>
+                    ))}
+                  </span>
+                </div>
+              </div>
+              <div class="nav-plain">
+                <div class:list={['nav-x', `nav-${v.key}`]}>
+                  <b>Wizard Note</b>
+                  <span class="nav-links">
+                    {navLinks.map((label) => (
+                      <a>{label}</a>
+                    ))}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <p class="ab-note">{v.note}</p>
+          </div>
+        ))
+      }
     </div>
   </section>
 
@@ -619,6 +660,69 @@ const palettes = [
     gap: 0.75rem;
     font-size: 0.85rem;
     color: var(--muted);
+  }
+
+  /* ---- D~H：每条展示「顶部」和「滚动后」两个状态 ---- */
+  .nav-pair {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--line);
+    border-radius: 0.75rem;
+    overflow: hidden;
+  }
+  /* 上半：模拟压在像素画头图上（顶部那段真站一律透明 + 白字） */
+  .nav-over {
+    background: linear-gradient(115deg, #2b1a4d 0%, #4a2263 45%, #1c2a5c 100%);
+  }
+  .nav-plain {
+    background: var(--bg);
+  }
+  .nav-x {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1.1rem;
+    color: var(--fg);
+  }
+  .nav-over .nav-x {
+    background: transparent !important;
+    border-bottom-color: transparent !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+    color: #fff;
+  }
+  .nav-over .nav-x .nav-links {
+    color: rgba(255, 255, 255, 0.85);
+  }
+  /* D · 通栏实底（贴顶） */
+  .nav-d {
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+  }
+  /* E · 只有一条细线 */
+  .nav-e {
+    background: transparent;
+    border-bottom: 1px solid var(--line);
+  }
+  /* F · 深色主题实底 */
+  .nav-f {
+    background: oklch(0.33 0.075 var(--hue));
+    color: #fff;
+  }
+  .nav-f .nav-links {
+    color: rgba(255, 255, 255, 0.86);
+  }
+  /* G · 胶囊 + 纯投影（无边框） */
+  .nav-g {
+    margin: 0.55rem 0.7rem;
+    border-radius: 0.75rem;
+    background: var(--surface);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05), 0 10px 28px rgba(0, 0, 0, 0.08);
+  }
+  /* H · 半透明贴顶（无圆角） */
+  .nav-h {
+    background: oklch(0.87 0.085 var(--hue) / 0.55);
+    backdrop-filter: blur(12px) saturate(1.4);
   }
 
   /* ---- ⑥ 骨架 ---- */
