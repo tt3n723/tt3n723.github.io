@@ -5,7 +5,7 @@
  *   指令语法在普通 .md 里就能用，**不需要在每篇文章顶部 import**，
  *   所以已有的 19 篇 .md 永远不会被迫改成 .mdx。
  *
- * 支持的语法（全部实测过，见 src/content/blog/style-guide.md）：
+ * 支持的语法（用法写在 README「文章里能写什么」一节）：
  *
  *   :::tip[标题]            提示框，类型见 CALLOUT_TYPES
  *   内容（正常 markdown）

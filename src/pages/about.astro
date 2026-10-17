@@ -12,7 +12,10 @@ import { SITE_AUTHOR } from '../consts';
   <div class="board">
     <div class="board-inner">
       <div class="about-head">
-        <img src="/img/avatar.webp" loading="lazy" alt="" class="about-avatar" />
+        {/* 头像是 38 帧的动画 WebP。原图 960×960 / 707 KB，
+          而这个位置只显示 5rem(95px) —— 10 倍过采样。
+          压到 192×192（2× 的 95px，够视网膜屏用）后 56 KB，肉眼看不出差别。 */}
+      <img src="/img/avatar-192.webp" loading="lazy" alt="" class="about-avatar" />
         <div>
           <h1 class="text-2xl font-bold">{SITE_AUTHOR}</h1>
         </div>

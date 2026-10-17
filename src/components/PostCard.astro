@@ -45,7 +45,14 @@ const ICON_TAG =
             class="index-img-frame"
             style={lqip ? `background: linear-gradient(135deg, ${lqip})` : undefined}
           >
-            <img src={post.data.cover} alt="" loading="lazy" class="cover-img" />
+            {/* 首页用 640 宽的预览图（卡片实际只显示 ~302px）。
+                原图留给详情页头图，两边分开。 */}
+            <img
+              src={post.data.cover.replace(/\/img\/(.+)\.jpe?g$/, '/img/card/$1.webp')}
+              alt=""
+              loading="lazy"
+              class="cover-img"
+            />
           </span>
         </a>
       </div>

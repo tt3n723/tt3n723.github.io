@@ -45,9 +45,8 @@
   "/img/44.jpg": "#545648, #4f4d3f, #4e4534",
   "/img/45.jpg": "#5f5e5e, #655e54, #65473a",
   "/img/46.jpg": "#252228, #212226, #4b4654",
-  "/img/avatar.webp": "#2f2e40, #231e2f, #524b58",
+  "/img/avatar-192.webp": "#302f41, #241f30, #534b58",
   "/img/banner-about.jpg": "#c3c6ca, #ccdade, #d9d1c7",
-  "/img/banner-home.webp": "#38276b, #35287a, #3e2a7b",
-  "/img/begin.jpg": "#433441, #362e36, #453846",
-  "/img/favicon.jpg": "#393937, #393938, #585856"
+  "/img/banner-home-poster.webp": "#37286b, #322676, #3d277a",
+  "/img/begin.jpg": "#433441, #362e36, #453846"
 }

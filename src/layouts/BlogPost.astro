@@ -61,8 +61,12 @@ const bannerSubtitle = [dateText, stats ? `${stats.chars} 字` : null, stats ? `
   publishedTime={pubDate.toISOString()}
   bannerTitle={title}
   bannerSubtitle={bannerSubtitle}
+  {/* 头图用**原始 JPEG**，不做任何压缩 —— 作者要求。
+        注意：源图只有 1920×1080，在 2x 屏或 2560 宽的屏上仍然会被放大，
+        那个"糊"来自分辨率不足，不是压缩造成的。 */}
   bannerImage={cover}
   bannerHeight="100vh"
+  preloadMath
 >
   <!-- 正文装进一块白板（和首页同款语言），目录留在板子外面 -->
   <div class="mx-auto w-full lg:grid lg:grid-cols-[minmax(0,1fr)_13rem] lg:gap-6 lg:px-3 2xl:max-w-[108rem]">

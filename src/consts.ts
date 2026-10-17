@@ -6,6 +6,8 @@
 //   HOME_*  → 只影响首页头图的那两行字
 export const SITE_TITLE = 'Wizard Note';
 export const HOME_TITLE = 'Believe in Me Who Believes in You';
+// 首页副标题：**当前没在用**（作者要求删掉头图上那行字）。
+// 想恢复的话，在 src/pages/[...page].astro 的 <BaseLayout> 里加回 bannerSubtitle={HOME_SUBTITLE}。
 export const HOME_SUBTITLE = '算法笔记与刷题记录';
 
 // 站点的通用描述：给搜索引擎的 meta description 和 RSS 用。

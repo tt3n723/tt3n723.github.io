@@ -1168,6 +1168,39 @@ pre {
   overflow: hidden;
   box-shadow: var(--shadow-card);
 }
+/* ============================================================
+   代码块：屏幕外的跳过布局与绘制（content-visibility）
+   ------------------------------------------------------------
+   动机：文章页 5 万个节点里 41% 是代码块（一篇 60 个，最大的内部 1,615 个
+   —— Shiki 给每个 token 包一层 span）。默认**全部参与布局**，
+   于是展开一个折叠块要重排整页，实测一帧 1001ms；加完之后 17ms。
+
+   ⚠️ 层级很关键（踩过坑）：
+      折叠块的**收起高度就是那一条代码头（53px）**，所以规则必须加在
+      .fold-code（外层折叠容器）上。
+      一开始我加在了 .code-block（内层）上并用 260px 占位 ——
+      结果内层的 260px 把外层收起的折叠块撑高了 207px/个，
+      60 个块让整页高度虚高 11,059px，第一次滚动时滚动条会猛跳。
+
+   ⚠️ contain-intrinsic-size 的 auto 关键字也不能少：
+      auto + 高度 = 先按这个高度占位，一旦真正渲染过就**记住真实高度**。
+      只写高度（没有 auto）的话，每次滚动都按占位值算，滚动条会一直跳。
+   ============================================================ */
+.fold-code {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 53px;
+}
+/* 非折叠的代码块（CSES 之外的散文里的代码）高度不定，给个经验值兜底 */
+pre.astro-code {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 220px;
+}
+/* 折叠块内部不要再跳一次：外层已经跳过，内层若再设会把收起态撑高 */
+.fold-code .code-block {
+  content-visibility: visible;
+  contain-intrinsic-size: none;
+}
+
 .code-head {
   display: flex;
   align-items: center;

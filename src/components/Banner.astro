@@ -13,6 +13,11 @@
 import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
 
 interface Props {
+  /**
+   * 头图。可以是静态图片，也可以是视频（.mp4 / .webm）。
+   * 传视频时会渲染成 <video autoplay muted loop>，并把同名的 -poster.webp 当背景垫底 ——
+   * 视频还没解码出来、加载失败、或者系统开了"减少动态效果"时，都自动退回那张静态海报。
+   */
   image?: string;
   title?: string;
   subtitle?: string;
@@ -25,16 +30,45 @@ interface Props {
 }
 
 const {
-  image = '/img/banner-home.webp',
+  image = '/img/banner-home.mp4',
   title = SITE_TITLE,
   subtitle = '',
   height = '100vh',
   scrollHint = true,
   typed = true,
 } = Astro.props;
+
+// 视频还是图片？视频需要 <video>，图片走 CSS background。
+// （必须放在解构之后 —— 这里要用到 image。）
+const isVideo = /\.(mp4|webm)$/i.test(image);
+const poster = isVideo ? image.replace(/\.(mp4|webm)$/i, '-poster.webp') : image;
 ---
 
-<header class="banner" style={`--banner-image: url('${image}'); --banner-height: ${height}`} data-pagefind-ignore>
+<header class="banner" style={`--banner-image: url('${poster}'); --banner-height: ${height}`} data-pagefind-ignore>
+  {
+    /*
+      为什么用 <video> 而不是动画 WebP：
+        动画 WebP 是**主线程逐帧解码**的，120 帧的循环会一直占着 CPU；
+        <video> 走硬件解码，同样的画面几乎不花 CPU。
+      体积也更小（实测 508 KB → 294 KB）。
+      背景仍然是那张静态海报 —— 所以视频没出来时不会白屏。
+    */
+    isVideo && (
+      <video
+        class="banner-media"
+        autoplay
+        muted
+        loop
+        playsinline
+        preload="auto"
+        poster={poster}
+        aria-hidden="true"
+        tabindex="-1"
+      >
+        <source src={image} type={`video/${image.split('.').pop()}`} />
+      </video>
+    )
+  }
   <div class="banner-mask">
     <div class="banner-text">
       <h1
@@ -67,6 +101,21 @@ const {
     background-repeat: no-repeat;
     background-position: center center;
     background-size: cover;
+  }
+  /* 头图视频：铺满 banner，垫在遮罩下面 */
+  .banner-media {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+  }
+  /* 系统开了"减少动态效果"就不再播视频，只剩背景那张静态海报 */
+  @media (prefers-reduced-motion: reduce) {
+    .banner-media {
+      display: none;
+    }
   }
   /* Fluid 的遮罩就是一层纯色，没有渐变 */
   .banner-mask {

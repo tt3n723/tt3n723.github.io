@@ -1,358 +1,343 @@
-<div align="center">
-
 # Wizard Note
 
-> 一个算法笔记博客主题。**Astro 7 手写**，Markdown 写作，数学公式开箱即用。
+个人算法笔记站。一套完全自己写的前端（Astro + Tailwind v4）。
 
-![Node.js >= 22](https://img.shields.io/badge/node.js-%3E%3D22-brightgreen)
-![pnpm >= 9](https://img.shields.io/badge/pnpm-%3E%3D9-blue)
-![Astro 7](https://img.shields.io/badge/Astro-7-orange)
-
-[**在线预览**](https://tt3n723.github.io/) · [**快速开始**](#-快速开始) · [**配置说明**](#-配置说明) · [**怎么发布**](#-部署)
-
-</div>
+**线上**：https://tt3n723.github.io/
 
 ---
 
-## ✨ 功能特性
+## 目录结构
 
-### 📖 阅读体验
+```
+src/
+├── content/blog/          ← 文章都放这，**文件名就是 URL**
+│     01-基础.md   →   /blog/01-基础/
+│     _draft.md    →   下划线开头 = 草稿，不会被构建
+├── consts.ts              ← 站名、描述、作者、导航栏、每页篇数、全站色相
+├── config-sakura.ts       ← 樱花特效参数
+├── data/
+│     music.ts             ← 歌单（歌名、作者、封面、mp3 路径）
+│     lqips.json           ← 封面占位色，**脚本生成，不要手改**
+├── components/            ← 导航栏 / 头图 / 文章卡 / 目录 / 搜索 / 音乐播放器…
+├── layouts/
+│     BaseLayout.astro     ← 所有页面的骨架（head、主题初始化、脚本启动）
+│     BlogPost.astro       ← 文章页骨架（正文板 + 右侧目录）
+├── pages/                 ← 路由，一个文件一个页面
+├── plugins/               ← 四个 markdown 插件（见下）
+├── scripts/               ← 每个功能一个文件，由 BaseLayout 统一启动
+├── styles/global.css      ← **全站所有样式**（约 2400 行，没有第二处）
+└── workers/sakura.worker.ts  ← 樱花在 Worker 里跑，不占主线程
 
-- **首页** —— 白板式文章列表，封面 16:9，图片加载前先铺主色渐变占位
-- **文章页** —— 100vh 全屏头图 + 正文白板 + 右侧吸顶目录
-- **真分页** —— 构建期生成 `/` `/2/` `/3/` …，每页篇数可配
-- **归档 / 分类 / 标签** —— 三个独立页面，分类页还有系列导航
-- **数学公式** —— KaTeX，行内 + 块级；**超宽公式自动换行，不会被裁掉**
-- **代码块** —— Shiki 明暗双主题，macOS 窗口样式，一键复制，可配置字体
-- **搜索** —— Pagefind 构建期建索引，**零后端**，结果高亮命中片段
-- **其它** —— 图片灯箱、Mermaid 图表、打字机标题、返回顶部、[RSS](/rss.xml)
+public/
+├── img/               ← 封面原图（详情页头图用，不压缩）
+│     card/            ← 首页预览图 640×360，**脚本生成**
+├── music/             ← 歌单 mp3
+├── favicon.svg        ← 标签页图标（死亡圣器，跟随浏览器明暗）
+└── apple-touch-icon.png  ← iOS 主屏图标（不透明，iOS 不支持 alpha）
 
-### 🎨 个性化
-
-- **一个数字换整站配色** —— 全站颜色由 `oklch(L C var(--hue))` 算出，改 `SITE_HUE` 即可
-- **设置面板** —— 色相、字号、行距、列表布局、樱花开关、头图遮罩深度，全部实时生效
-- **明暗三态** —— 浅色 / 深色 / 跟随系统
-- **樱花特效** —— 跑在 Web Worker + OffscreenCanvas 里，切页不中断、不掉帧
-- **音乐播放器** —— 无刷新切页时**不会中断播放**
-- **所有设置存在浏览器本地**，每个访客互不影响
-
-### 🧩 写作
-
-- **提示框 / 折叠块 / 标签页 / 链接卡 / 栅格 / 步骤 / 时间线 / 剧透**
-- 全部是**纯 Markdown 指令**，不需要 import 任何组件
-- **文件名以下划线开头就是草稿**，不会被构建
-
----
-
-## 🚀 快速开始
-
-### 环境要求
-
-| | |
-| --- | --- |
-| Node.js | **≥ 22** |
-| 包管理器 | **pnpm**（推荐 ≥ 9） |
-
-### 本地开发
-
-```bash
-pnpm install
-pnpm dev          # → http://localhost:5173
+scripts/
+├── generate-lqips.mjs    ← 生成封面占位色（pnpm build 会自动跑）
+├── generate-covers.mjs   ← 生成首页预览图（**手动跑**，见下）
+└── clean.mjs             ← 清缓存
 ```
 
-### 构建与预览
+---
 
-```bash
-pnpm build        # 生成占位图 → astro build → 建搜索索引
-pnpm preview      # → http://localhost:5174
+## 加一篇新文章
+
+### 1. 建文件
+
+在 `src/content/blog/` 下新建 `.md`，**文件名就是 URL**：
+
+```
+19-新专题.md    →    /blog/19-新专题/
 ```
 
-> ⚠️ **构建请用 `pnpm build`，不要用 `npx astro build`。**
-> `build` 是三步：生成图片占位图、`astro build`、Pagefind 建索引。
-> 直接跑 `astro build` 会清掉 `dist/pagefind/`，**站内搜索从此永远返回 0 条**。
+### 2. 写 frontmatter
+
+```yaml
+---
+title: "算法笔记 19｜新专题"      # 必填。会显示在头图和浏览器标签上
+description: "一句话概括，显示在首页文章卡上"
+pubDate: 2026-06-01              # 必填，决定排序
+updatedDate: 2026-06-15          # 可选
+tags: [图论, DP]                  # 可选
+categories: [Algorithm]          # 可选，第一个会显示在卡片上
+cover: /img/19.jpg               # 可选，不写就没有封面图
+draft: false                     # 可选
+---
+```
+
+> 想写草稿又不想删掉内容？把文件名改成 `_xxx.md`（下划线开头）—— 会被静默忽略，连构建都不参与。
+
+### 3. 封面图（如果用了 cover）
+
+```bash
+# 把原图放进 public/img/19.jpg，然后生成首页预览图：
+node scripts/generate-covers.mjs
+```
+
+**这一步不能忘** —— 首页文章卡用的是 `public/img/card/19.webp`（640×360），没生成的话卡片是空白。
+
+两个尺寸的分工：
+
+| | 用在哪 | 大小 | 压缩 |
+|---|---|---|---|
+| `public/img/19.jpg` | 详情页头图 | 原始尺寸 | **不压缩** |
+| `public/img/card/19.webp` | 首页卡片 | 640×360 | 有损 |
+
+### 4. 本地看效果
+
+```bash
+pnpm dev          # 改文章热更新
+pnpm build        # 生成 lqip + 构建 + 建搜索索引
+pnpm preview      # 预览构建结果
+```
 
 ---
 
-## 📖 配置说明
+## 文章里能写什么
 
-### 站点信息 / 导航栏 / 每页篇数
+### 数学公式
 
-全部集中在 **[`src/consts.ts`](src/consts.ts)**：
+行内 `$O(n\log n)$`，独立成行用 `$$`。KaTeX 渲染，**长公式会自动换行**（不会横向溢出）。
+
+### 代码块
+
+````
+```cpp
+int main() { return 0; }
+```
+````
+
+自动高亮（Shiki，深浅两套主题）+ 三色点窗口外观 + 右上角复制按钮。**行号可选**。
+
+### 折叠块 —— 最常用
+
+````
+:::details[题解（C++）]
+这里写内容，可以放代码块
+:::
+````
+
+403 个题解全用这个。默认收起，点标题展开。
+
+### 提示框
+
+````
+:::tip[小技巧]
+内容
+:::
+````
+
+五种：`tip` / `note` / `important` / `warning` / `danger`，颜色从绿到红。
+
+### 标签页
+
+````
+:::tabs
+::tab[递归写法]
+内容一
+::tab[迭代写法]
+内容二
+:::
+````
+
+### 链接卡
+
+````
+:::link[CSES Problem Set]{href="https://cses.fi/problemset/"}
+简介文字（可省略）
+:::
+````
+
+### 栅格（并排对比）
+
+````
+:::grid{cols=2}
+::cell
+左边
+::cell
+右边
+:::
+````
+
+移动端自动变成上下排列。
+
+### 步骤 / 时间线
+
+````
+:::steps
+::step[第一步]
+说明
+::step[第二步]
+说明
+:::
+````
+
+把 `steps` 换成 `timeline` 就是时间线样式（方形节点）。序号和竖线是纯 CSS，零 JS。
+
+### 行内剧透
+
+` :spoiler[文字] ` —— 默认涂黑，鼠标移上去才显示。适合「先自己想，再看提示」。
+
+### 图片（正文插图）
+
+**放哪**：`public/img/posts/` 下，随便命名。
+
+```
+public/img/posts/binary-lifting.png
+```
+
+**怎么写**：
+
+```
+![倍增求 LCA 的过程](/img/posts/binary-lifting.png)
+```
+
+**不需要跑任何脚本** —— 放进去就能用。
+
+三个自动行为：
+
+- `alt` 文字自动变成图下方的**题注**，不用手写 caption
+- 点图片**放大**（灯箱，支持左右键在同篇文章的图之间切换）
+- 按正文宽度自动缩放，不会溢出
+
+> ⚠️ **别直接丢进 `public/img/` 顶层** —— 那里是放封面的，两个脚本会把它当成封面去生成预览图和占位色，多出一堆没用的文件。
+
+#### 正文图片 vs 封面图 —— 别搞混
+
+|  | 封面图 | 正文图片 |
+|---|---|---|
+| **放哪** | `public/img/47.jpg` | `public/img/posts/xxx.png` |
+| **要不要跑脚本** | **要** → `node scripts/generate-covers.mjs` | **不要** |
+| **怎么引用** | frontmatter `cover: /img/47.jpg` | 正文 `![说明](/img/posts/xxx.png)` |
+| **格式建议** | JPEG（源图，不压缩） | WebP / PNG（体积小） |
+| **出现在哪** | 首页卡片 + 详情页头图 | 正文里面 |
+| **有加载占位吗** | 有（先显示那张图的纯色块） | 没有（网慢会先空一块再跳出来） |
+
+> 为什么封面必须跑脚本：首页卡片用的**不是原图**，而是单独的 `public/img/card/47.webp`（640×360）。不跑脚本那张卡片就是空白。
+
+> 正文图片没有占位色是已知的小遗憾。自己看的话影响不大；真要在意，得改 `generate-lqips.mjs` 让它也扫 `posts/` 目录。
+
+### Mermaid 图表
+
+````
+```mermaid
+graph TD;
+  A --> B;
+```
+````
+
+**滚到眼前才渲染**，而且只有页面里真有图表时才加载那 1.4 MB 的 ELK 引擎。
+
+---
+
+## 改站点
+
+### 站名 / 首页标语 / 作者
+
+`src/consts.ts`：
 
 ```ts
-export const SITE_TITLE = 'Wizard Note';        // 站名（导航栏左上角）
-export const SITE_DESCRIPTION = '';
-export const SITE_AUTHOR = '';         // 页脚版权
-export const SITE_HUE = 265;                    // 全站色相，见下一节
-export const POSTS_PER_PAGE = 9;                // 首页每页几篇
-export const NAV_LINKS = [ ... ];               // 导航栏，带 children 的会变下拉菜单
+SITE_TITLE      导航栏左上角 + 浏览器标签 + RSS
+HOME_TITLE      首页头图那行大字
+HOME_SUBTITLE   首页头图副标题（**当前停用**，想恢复见文件注释）
+SITE_DESCRIPTION 给搜索引擎和分享卡片用
+SITE_AUTHOR     关于页标题 + 页脚
+NAV_LINKS       导航栏项目
+POSTS_PER_PAGE  每页几篇
+SITE_HUE        全站默认色相（0-360，265 = 靛蓝）
 ```
 
 ### 配色
 
-**整套配色由 `SITE_HUE` 一个数字驱动。** 改它，整站颜色跟着变：
+配色是 **OKLCH + 一个色相变量**驱动的：
 
-| 色相 | 颜色 | 色相 | 颜色 |
-| --- | --- | --- | --- |
-| `0` | 红 | `200` | 青 |
-| `25` | 橙红 | `230` | 蓝 |
-| `60` | 琥珀 | `265` | **靛蓝（默认）** |
-| `160` | 绿 | `330` | 洋红 |
-
-访客也能在设置面板里实时拖着改（只影响他自己的浏览器）。
+- 导航栏的设置面板里能调**主题色相**（9 个预设 + 滑杆）和**纸面色调**（6 种：默认/暖纸/护眼绿/雾青/藕荷/纯灰）
+- 这两个是**独立**的：换了暖纸，主题色仍然可以随便调
+- 想改默认值 → `src/styles/global.css` 顶部的 `--hue` 和各 `--paper-*`
 
 ### 歌单
 
-把 mp3 放进 `public/music/`，然后在 **[`src/data/music.ts`](src/data/music.ts)** 的 `MUSIC_PLAYLIST` 里加一行。
+`src/data/music.ts` —— 加一首就加一条，mp3 放 `public/music/`。
 
 ### 樱花特效
 
-**[`src/config-sakura.ts`](src/config-sakura.ts)** 里调花瓣数量、大小、飘落速度。默认 21 片。
+`src/config-sakura.ts` —— 花瓣数量/大小/速度，还有用的图片路径。默认关闭，设置面板里开。
 
 ### 样式
 
-全站样式都在 **[`src/styles/global.css`](src/styles/global.css)**（约 2000 行，按区块分好注释）。
-颜色尽量走这几个变量：
+**全站样式都在 `src/styles/global.css`（约 2400 行）**，没有第二处。
 
-```css
---hue        /* 全站色相 0-360 */
---accent     /* 主题色，由 --hue 算出 */
---accent-fg  /* 压在主题色上的文字色 */
---fg         /* 正文 */
---muted      /* 次要文字（日期、摘要、图标） */
---bg         /* 页面底色 */
---board-bg   /* 内容白板底色 */
---glass-bg   /* 导航栏毛玻璃底色 */
-```
+几个容易找错位置的：
 
-### 配置文件一览
+| 想改 | 去哪 |
+|---|---|
+| 导航栏（含毛玻璃、设置面板） | `src/components/Header.astro` 的 `<style>` 块 |
+| 头图 | `src/components/Banner.astro` 的 `<style>` 块 |
+| 目录 | `global.css` 搜 `.toc-` |
+| 文章卡 | `global.css` 搜 `.index-card` |
+| 代码块 | `global.css` 搜 `.code-block` |
 
-| 文件 | 作用 |
-| --- | --- |
-| [`src/consts.ts`](src/consts.ts) | 站点信息、色相、导航栏、每页篇数 |
-| [`src/config-sakura.ts`](src/config-sakura.ts) | 樱花特效参数 |
-| [`src/data/music.ts`](src/data/music.ts) | 歌单 |
-| [`src/styles/global.css`](src/styles/global.css) | 全站样式 |
-| [`astro.config.mjs`](astro.config.mjs) | markdown 管线、站点地址、端口 |
-| [`pagefind.yml`](pagefind.yml) | 搜索索引配置 |
-| [`src/content/blog/`](src/content/blog) | 文章 |
+> ⚠️ Astro 的 `<style>` 是**作用域隔离**的 —— `Header.astro` 里写的样式只作用于 Header 组件内部，想在别的组件里覆盖它是没用的。
 
 ---
 
-## ⚙️ 文章 Frontmatter
-
-文章放在 **`src/content/blog/`**，**文件名就是 URL**（`19-网络流.md` → `/blog/19-网络流/`）。
-
-```markdown
----
-title: 网络流入门              # 必填
-description: 从最大流讲到费用流。   # 摘要，显示在列表页
-pubDate: 2026-06-01            # 必填，发布日期
-updatedDate: 2026-06-05        # 可选，有它才会显示"已更新"
-cover: /img/05.jpg             # 可选，封面图（16:9 最合适）
-categories: [Algorithm]        # 可选，数组
-tags: [网络流, 图论]            # 可选，数组
-draft: false                   # 可选，true 则构建时跳过
----
-```
-
-| 字段 | 类型 | 说明 |
-| --- | --- | --- |
-| `title` | 字符串 | **必填** |
-| `pubDate` | 日期 | **必填** |
-| `description` | 字符串 | 摘要，显示在列表页 |
-| `updatedDate` | 日期 | 可选，有它才显示"已更新" |
-| `cover` | 字符串 | 可选，指向 `public/` 下的路径 |
-| `categories` | 字符串数组 | 可选 |
-| `tags` | 字符串数组 | 可选 |
-| `draft` | 布尔 | 可选，`true` 跳过构建 |
-
-> 想写草稿又不想加字段？**文件名以 `_` 开头**即可（如 `_draft.md`），构建时会被静默忽略。
-
-图片放进 **`public/img/`**，文章里写 `/img/文件名`。
-构建时会自动给每张封面生成主色渐变占位图，图片加载出来之前不会白屏。
-
----
-
-## 🧩 Markdown 扩展语法
-
-除标准 Markdown 外，还支持以下指令。**全部是纯 Markdown，不需要 import 组件。**
-
-| 指令 | 写法 | 作用 |
-| --- | --- | --- |
-| 提示框 | `:::tip[标题]` … `:::` | 类型有 tip / note / info / important / warning / danger / caution |
-| 折叠块 | `:::details[标题]` … `:::` | 默认收起，适合放题解 |
-| 标签页 | `:::tabs` + `::tab[名字]` | 多标签切换 |
-| 链接卡 | `:::link[标题]{href="https://example.com"}` | 带图标的外链卡片 |
-| 栅格 | `:::grid{cols=2}` + `::cell` | 多列排版 |
-| 步骤 | `:::steps` + `::step[标题]` | 带序号和竖线 |
-| 时间线 | `:::timeline` + `::step[标题]` | 方形节点的竖线 |
-| 剧透 | `:spoiler[文字]` | 涂黑，悬停才显示 |
-
-数学公式用 `$行内$` 和 `$$块级$$`；图表用 ```mermaid 代码块。
-
-> 👉 **每个组件的实际效果和完整写法，都在站内的
-> [「样式与组件展示」](src/content/blog/style-guide.md) 那一页**（`/blog/style-guide/`）。
-> 它同时也是改完 CSS 之后的**回归基准**。
-
----
-
-## 🚀 部署
-
-部署分两半：**已经搭好的日常使用**，和**从零开始搭一个**。
-
----
-
-### 一、日常发布
-
-写完文章、改完样式，想让线上更新 —— **只要三行**：
+## 发布
 
 ```bash
+pnpm build          # 必须用这个，不要用 npx astro build（会漏掉搜索索引）
 git add -A
-git commit -m "新增文章：网络流入门"
-git push
+git commit -m "写清楚改了什么"
+git push            # GitHub Actions 自动构建并部署
 ```
 
-推送后 GitHub 会自动构建并发布，**大约 1~2 分钟后**线上就变了。
+**`pnpm build` = 生成 lqip → astro build → pagefind 建索引**。
+用 `npx astro build` 跳过 pagefind，搜索会返回 0 条结果。
 
-> 站点地址：**https://tt3n723.github.io/**
->
-> 仓库里已经有 [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)，
-> 每次 `git push` 都会自动触发，**不需要你做任何别的事**。
-
-#### 怎么知道成没成功
-
-打开仓库的 **Actions** 标签页，能看到每次推送触发的 **Deploy to GitHub Pages**：
-
-| 图标 | 含义 | 该做什么 |
-| --- | --- | --- |
-| 🟡 转圈 | 正在构建 | 等 1~2 分钟 |
-| ✅ 绿勾 | 成功，已经上线 | 打开站点确认 |
-| ❌ 红叉 | 失败 | 点进去看哪一步变红，对照下面的[排错](#四排错) |
-
-#### 推之前想先本地看一眼
-
-```bash
-pnpm build
-pnpm preview      # → http://localhost:5174
-```
-
-本地看没问题再推，能省一次失败的 Actions。
-
-> ⚠️ **`package.json` 和 `pnpm-lock.yaml` 必须一起提交。**
-> CI 用的是 `pnpm install --frozen-lockfile`，两个文件对不上会**直接构建失败**。
-> 用上面的 `git add -A` 就不会漏掉。
+Actions 在 `.github/workflows/deploy.yml`，推 `main` 或 `master` 都会触发。
 
 ---
 
-### 二、从零搭建
+## 踩过的坑
 
-换电脑、或者帮别人搭一个，走这一套。
+这些都是实际调试出来的，记下来免得重犯。
 
-#### 前置条件
+### 构建突然失败，先看 `dist` 有没有被占着
 
-- **GitHub 账号**
-- **本机装了 Git**，并且配好了身份（没配的话提交会报错）：
+预览服务器开着的时候跑构建，可能写不进 `dist`。先关预览再构建。
 
-  ```bash
-  git config --global user.name "你的名字"
-  git config --global user.email "你的邮箱"
-  ```
+### `<ClientRouter />` 会抹掉 `<html>` 上的 class
 
-#### 第 1 步 · 在 GitHub 建仓库
+客户端路由切换会把 `<html>` 的属性重置，所以 `dark`、`js` 这些 class 会丢。每个脚本都必须在 `astro:page-load` 里重新初始化，不能只在 `DOMContentLoaded` 里跑一次。
 
-登录 GitHub → 右上角 **+** → **New repository**，然后：
+### 半透明浅色叠在像素画头图上必然脏
 
-| 字段 | 填什么 |
-| --- | --- |
-| Repository name | **`<你的用户名>.github.io`** —— 必须和用户名**完全一致** |
-| 可见性 | **Public**（Private 仓库用 Pages 要付费账号） |
-| Add a README file | **不要勾**（本地已经有了） |
-| Add .gitignore / license | **不要勾**（同上） |
+试过很多次不同透明度，都救不了 —— 高饱和的像素画透过浅色层会混出一层脏色。要么用**不透明实底**，要么用**深色**。
 
-点 **Create repository**。建完页面会给你一个仓库地址，形如
-`https://github.com/<你的用户名>/<你的用户名>.github.io.git`，下一步要用。
+### `content-visibility` 的 `contain-intrinsic-size` 必须匹配真实高度
 
-#### 第 2 步 · 把本地仓库关联到远程
+给折叠代码块用 260px 占位（实际收起后只有 53px），60 个块让整页虚高 11,059px，第一次滚动滚动条会猛跳。
 
-在项目目录里执行（把地址换成上一步给你的）：
+正确做法：把规则加在**外层容器**（`.fold-code`）上，占位值按收起高度 53px 定，而且 `auto` 关键字不能少 —— 它记住真实高度。
 
-```bash
-cd C:\Study\Project\my_blog
+### KaTeX 的 `font-display` 只能是 `block`
 
-# 已经有了 origin 就先删掉（换过仓库地址的情况）
-git remote remove origin
+改成 `swap` 会先用错误字体排一遍再重排，更糟。正确的解法是**预加载字体**（文章页有 5 个 `<link rel="preload">`），让字体和 HTML 同时开始下载。
 
-git remote add origin https://github.com/<你的用户名>/<你的用户名>.github.io.git
-git remote -v          # 确认地址对了
-```
+### 模糊缩略图当占位会「吓人」
 
-#### 第 3 步 · 推送
+把封面缩到 20×20 当 LQIP，人物图会糊成「认得出轮廓又看不清脸」的形状，落在恐怖谷里。所以退回了纯色渐变。
 
-```bash
-git add -A
-git commit -m "初始化博客"
-git push -u origin main
-```
+### 音乐播放器的音量要区分「没存过」和「存了 0」
 
-> 本地分支叫 `master` 而不是 `main` 的话，把上面最后一行改成
-> `git push -u origin master`。workflow 里 **main 和 master 都监听了**，不用担心。
-
-#### 第 4 步 · 开启 GitHub Actions 部署
-
-**这一步是最容易漏的，漏了就会推送成功但线上一直是 404。**
-
-1. 打开仓库 → **Settings**
-2. 左侧栏 → **Pages**
-3. **Build and deployment** → **Source** 选 **`GitHub Actions`**（**不要**选 "Deploy from a branch"）
-4. 保存
-
-> 选完之后不需要点任何"部署"按钮 —— 下一次 `git push` 就会自动跑。
-
-#### 第 5 步 · 验证
-
-1. 回到仓库的 **Actions** 标签页，应该能看到一个正在跑（或已跑完）的 **Deploy to GitHub Pages**
-2. 等它变成 ✅ 绿勾
-3. 打开 **https://<你的用户名>.github.io/**
-
-#### 站点地址是怎么确定的
-
-**不需要手改任何常量。** workflow 里的 `actions/configure-pages` 会读出真实域名，
-通过环境变量 `SITE_URL` 喂给构建，所以 RSS、sitemap、站内绝对链接全都是对的。
-
-#### 如果你要用「项目站」
-
-上面这套适用于**用户站** —— 仓库名必须是 `<用户名>.github.io`，网址是
-`https://<用户名>.github.io/`。
-
-如果仓库名是别的（比如 `blog`），网址就会变成
-`https://<用户名>.github.io/blog/`，这时**还需要**：
-
-1. 在 [`astro.config.mjs`](astro.config.mjs) 里加 `base: '/blog'`
-2. 把站内写死的绝对路径（`/img/...`、`/music/...`）改成带前缀的形式
-
-比较麻烦，**没特殊需求就用用户站**。
+`Number(localStorage.getItem(KEY))` 在 key 不存在时返回 `0`，滑块会显示 0% 而不是 70%。必须先判断 `stored === null`。
 
 ---
 
-### 三、改域名（可选）
+## 致谢
 
-默认地址是 `https://<用户名>.github.io/`。想绑自己的域名：
-
-1. 在 `public/` 下建一个 **`CNAME`** 文件，内容只有一行域名，例如：
-   ```text
-   blog.example.com
-   ```
-2. 到你的域名服务商加一条 **CNAME 记录**，指向 `<你的用户名>.github.io`
-3. 仓库 **Settings → Pages → Custom domain** 填上同一个域名，勾选 **Enforce HTTPS**
-
----
-
-## 🙏 致谢
-
-设计上大量参考了两个项目：
-
-- **[hexo-theme-fluid](https://github.com/fluid-dev/hexo-theme-fluid)** —— 首页列表、分页、归档、分类、标签的版式
-- **[Firefly](https://github.com/CuteLeaf/Firefly)** —— 导航栏、设置面板、目录、代码块、链接卡、樱花特效
-
-技术栈：**Astro 7** · **Tailwind CSS v4** · **KaTeX** · **Shiki** · **Pagefind** · **Mermaid**
+- 视觉参考：[Firefly](https://github.com/Cuteleaf/Firefly)（导航栏毛玻璃、列表布局）
+- 旧站：[hexo-theme-fluid](https://github.com/fluid-dev/hexo-theme-fluid)（正文板、文章卡语言）
+- 技术栈：[Astro](https://astro.build) · [Tailwind CSS v4](https://tailwindcss.com) · [KaTeX](https://katex.org) · [Shiki](https://shiki.style) · [Pagefind](https://pagefind.app)
