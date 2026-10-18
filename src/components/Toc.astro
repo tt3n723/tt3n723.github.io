@@ -50,8 +50,8 @@ for (const heading of headings) {
                   data-toc-top
                   href={`#${group.slug}`}
                 >
-                  <span class="toc-badge">{index + 1}</span>
-                  <span class="toc-label">{group.text}</span>
+                  <span class="toc-num">{index + 1}</span>
+                  <span class="toc-label" title={group.text}>{group.text}</span>
                 </a>
                 {group.children.length > 0 && (
                   <div class="toc-children">
@@ -61,8 +61,7 @@ for (const heading of headings) {
                         data-heading-id={child.slug}
                         href={`#${child.slug}`}
                       >
-                        <span class="toc-dot" aria-hidden="true" />
-                        <span class="toc-label">{child.text}</span>
+                        <span class="toc-label" title={child.text}>{child.text}</span>
                       </a>
                     ))}
                   </div>

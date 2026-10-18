@@ -69,7 +69,7 @@ const bannerSubtitle = [dateText, stats ? `${stats.chars} 字` : null, stats ? `
   preloadMath
 >
   <!-- 正文装进一块白板（和首页同款语言），目录留在板子外面 -->
-  <div class="mx-auto w-full lg:grid lg:grid-cols-[minmax(0,1fr)] lg:gap-6 lg:px-3 2xl:max-w-[108rem]">
+  <div class="mx-auto w-full lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-6 lg:px-3 2xl:max-w-[108rem]">
     <article class="post-board min-w-0" data-pagefind-body>
       <div class="post-board-inner">
         <!-- 标题已经在头图上了；这里给 Pagefind 一个稳的标题来源 -->
@@ -107,12 +107,6 @@ const bannerSubtitle = [dateText, stats ? `${stats.chars} 字` : null, stats ? `
         }
       </div>
     </article>
-
-    {/*
-      目录暂时隐藏 —— 作者反馈「详情页目录划不动 / 一卡一卡」，先拿掉它做对照测试。
-      测试完要恢复的话，把下面这一行取消注释、并把上面的栅格改回两列：
-        lg:grid-cols-[minmax(0,1fr)_13rem]
-    */}
-    {/* <Toc headings={headings} /> */}
+    <Toc headings={headings} />
   </div>
 </BaseLayout>
