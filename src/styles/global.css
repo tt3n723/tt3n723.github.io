@@ -905,8 +905,8 @@ html.dark .board {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-/* 章节序号：细数字，右对齐，等宽数字保证不抖动。
-   以前是灰色方块，40 个排下来像贴满标签。 */
+/* 章节序号：细数字，右对齐，等宽数字保证不左右抖。
+   以前是个 1.35rem 的灰色方块，40 个排下来像贴满标签。 */
 .toc-num {
   flex-shrink: 0;
   width: 1rem;
@@ -916,16 +916,16 @@ html.dark .board {
   font-variant-numeric: tabular-nums;
   color: color-mix(in srgb, var(--muted) 70%, transparent);
 }
+.toc-item-l0 .toc-num {
+  color: var(--accent);
+}
 .toc-item-l0 {
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--fg);
 }
-.toc-item-l0 .toc-num {
-  color: var(--accent);
-}
 /* ── 二级：挂在导轨线上 ──
-   margin-left 和序号宽度一致（1rem + 半个 gap），线正好落在序号右缘。
+   导轨线落在章名的起始位置，子项挂在线右侧。
    开合**不做动画** —— 上一版的 max-height 过渡是「一卡一卡」的来源之一。 */
 .toc-children {
   display: flex;
@@ -2550,25 +2550,7 @@ html.sakura-off .sakura-canvas {
   border-top: 1px solid var(--line);
 }
 
-/* 当前项左侧的色条 —— 纯 CSS 画，不再由 JS 计算位置。
-   （上一版是 JS 每帧读 getBoundingClientRect 再写 style.top/height，那才是卡的主因） */
-.toc-item {
-  position: relative;
-}
-.toc-item.is-active::before {
-  content: '';
-  position: absolute;
-  left: -0.1rem;
-  top: 0.4rem;
-  bottom: 0.4rem;
-  width: 2px;
-  border-radius: 2px;
-  background: var(--accent);
-}
-.toc-item.is-active {
-  color: var(--fg);
-  font-weight: 600;
-}
+/* （这里原本有一条当前项左侧的蓝色竖线，作者不要，已删除） */
 /* 旧的 JS 指示条已经不用了，留着 selector 也不会生效 */
 .toc-indicator {
   display: none;
