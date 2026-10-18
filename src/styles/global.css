@@ -2512,3 +2512,69 @@ html.sakura-off .sakura-canvas {
   background: var(--accent);
   box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 55%, transparent);
 }
+
+/* ============================================================
+   分类页：一行一个，点标题就地展开
+   ------------------------------------------------------------
+   用原生 <details>/<summary>，零 JS。
+   要藏掉 <summary> 默认那个小三角，必须两边都写：
+     ::-webkit-details-marker { display: none }  ← Chrome/Safari
+     list-style: none                            ← Firefox
+   ============================================================ */
+.cat-acc {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.cat-acc-item {
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+  background: var(--surface);
+  overflow: hidden;
+}
+.cat-acc-head {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.1rem 1.4rem;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  transition: background-color 0.15s;
+}
+.cat-acc-head::-webkit-details-marker {
+  display: none;
+}
+.cat-acc-head:hover {
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+.cat-acc-head:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.cat-acc-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--fg);
+}
+.cat-acc-count {
+  flex-shrink: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.cat-acc-arrow {
+  flex-shrink: 0;
+  width: 1.1rem;
+  height: 1.1rem;
+  color: var(--muted);
+  transition: transform 0.2s ease;
+}
+.cat-acc-item[open] .cat-acc-arrow {
+  transform: rotate(180deg);
+}
+.cat-acc-body {
+  padding: 0.35rem 0.75rem 0.9rem;
+  border-top: 1px solid var(--line);
+}

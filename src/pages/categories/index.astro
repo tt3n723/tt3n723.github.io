@@ -1,21 +1,38 @@
 ---
 /**
- * 分类总览 —— 照搬 Firefly：三列卡片，每张一个圆形文件夹图标 + 名称 + 篇数 + 右箭头。
- * 没有分类封面图（Firefly 也没有）。
+ * 分类总览 —— 一行一个的自展开列表（参考旧站 hexo-theme-fluid 的分类页）。
+ *
+ * 结构：每个分类是一条 <details>，点标题就地展开，里面是该分类下的文章链接。
+ * 用原生 <details>/<summary> 而不是 JS 折叠 —— 零脚本、键盘可用、Ctrl+F 能搜到里面的内容。
  */
 import { getCollection } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
 const posts = await getCollection('blog', ({ data }) => !data.draft);
 
-const counted = new Map<string, number>();
+// 按第一个分类分组
+const groups = new Map<string, typeof posts>();
 for (const post of posts) {
   const name = post.data.categories[0] ?? '未分类';
-  counted.set(name, (counted.get(name) ?? 0) + 1);
+  const list = groups.get(name);
+  if (list) list.push(post);
+  else groups.set(name, [post]);
 }
-const categories = [...counted.entries()]
-  .map(([name, count]) => ({ name, count }))
+
+const categories = [...groups.entries()]
+  .map(([name, list]) => ({
+    name,
+    count: list.length,
+    // 新文章排前面，和归档页一致
+    posts: [...list].sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()),
+  }))
   .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+
+const fmtDay = new Intl.DateTimeFormat('zh-CN', {
+  month: '2-digit',
+  day: '2-digit',
+  timeZone: 'Asia/Shanghai',
+});
 ---
 
 <BaseLayout
@@ -27,23 +44,34 @@ const categories = [...counted.entries()]
 >
   <div class="board">
     <div class="board-inner">
-      <div class="cat-grid">
+      <div class="cat-acc">
         {
           categories.map((category) => (
-            <a class="cat-card" href={`/categories/${encodeURIComponent(category.name)}/`} data-reveal>
-              <span class="cat-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            <details class="cat-acc-item" data-reveal>
+              <summary class="cat-acc-head">
+                <span class="cat-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                  </svg>
+                </span>
+                <span class="cat-acc-name">{category.name}</span>
+                <span class="cat-acc-count">{category.count} 篇</span>
+                <svg class="cat-acc-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="m6 9 6 6 6-6" />
                 </svg>
-              </span>
-              <span class="cat-body">
-                <span class="cat-name">{category.name}</span>
-                <span class="cat-count">{category.count} 篇</span>
-              </span>
-              <svg class="cat-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="m9 18 6-6-6-6" />
-              </svg>
-            </a>
+              </summary>
+              <div class="cat-acc-body">
+                {
+                  category.posts.map((post) => (
+                    <a class="flat-item" href={`/blog/${post.id}/`}>
+                      <span class="flat-date">{fmtDay.format(post.data.pubDate)}</span>
+                      <span class="flat-title">{post.data.title}</span>
+                      <span class="flat-tags">{post.data.tags.map((tag) => `#${tag}`).join(' ')}</span>
+                    </a>
+                  ))
+                }
+              </div>
+            </details>
           ))
         }
       </div>
