@@ -1,0 +1,24 @@
+---
+/**
+ * 断网兜底页。由 Service Worker 预缓存，永远是离线的第一屏。
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="离线" description="现在没有网络" bannerTitle="离线" bannerSubtitle="这篇还没存到本机" width="wide">
+  <div class="board">
+    <div class="board-inner">
+      <div class="offline-box">
+        <p class="offline-title">这篇还没下载过</p>
+        <p class="offline-text">
+          你打开过的文章都存了副本，断网也能看。这一篇还没存过。
+          等网络恢复再刷新一下就行。
+        </p>
+        <div class="offline-actions">
+          <a class="offline-btn is-primary" href="/">回首页</a>
+          <button class="offline-btn" type="button" data-offline-reload>重新加载</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>

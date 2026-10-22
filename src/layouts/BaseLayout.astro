@@ -103,7 +103,9 @@ const canonical = new URL(Astro.url.pathname, SITE_URL).href;
         </>
       )
     }
-    <ClientRouter />
+    {/* 预加载：等当前页 load 完、浏览器空闲了才去取其他页，不抢首屏带宽。
+    作者要的「进来先看首页，其他后台下载」就是这个行为。 */}
+<ClientRouter prefetch={{ prefetchAll: true, defaultStrategy: 'load' }} />
     {noindex && <meta name="robots" content="noindex, nofollow" />}
 
     <!-- 分享卡片。宽度高度按站内封面统一 16:9 的比例给，
@@ -193,6 +195,7 @@ const canonical = new URL(Astro.url.pathname, SITE_URL).href;
       import { initSakura } from '../scripts/sakura';
       import { initFireworks } from '../scripts/fireworks';
       import { initProgress } from '../scripts/progress';
+      import { initSw } from '../scripts/sw';
 
       // 用 astro:page-load 统一驱动：
       //   - 首次加载会触发一次
@@ -215,6 +218,7 @@ const canonical = new URL(Astro.url.pathname, SITE_URL).href;
         initCopyCode();
         initTabs();
         initToc();
+  initSw();
         initMermaid();
         initLqip();
         initMusic();

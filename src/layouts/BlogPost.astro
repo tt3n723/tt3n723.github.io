@@ -31,6 +31,9 @@ const {
   headings = [],
   stats,
 } = Astro.props;
+// 有 h2 才有目录（和 Toc.astro 里的判断一致）。没有目录时右侧那一栏不能留空。
+const hasToc = headings.some((h) => h.depth === 2);
+
 
 // 上一篇 / 下一篇（作者要求补的"操作流程"）
 const all = (await getCollection('blog', ({ data }) => !data.draft)).sort(
@@ -69,7 +72,14 @@ const bannerSubtitle = [dateText, stats ? `${stats.chars} 字` : null, stats ? `
   preloadMath
 >
   <!-- 正文装进一块白板（和首页同款语言），目录留在板子外面 -->
-  <div class="mx-auto w-full lg:grid lg:grid-cols-[minmax(0,1fr)_15rem] lg:gap-6 lg:px-3 2xl:max-w-[108rem]">
+  <div
+      class:list={[
+        'mx-auto w-full lg:grid lg:gap-6 lg:px-3',
+        // 有目录：两列，右侧 15rem 放目录
+        // 没有目录：单列，并且收窄居中 —— 否则两千字的短文会横穿整个 108rem
+        hasToc ? 'lg:grid-cols-[minmax(0,1fr)_15rem] 2xl:max-w-[108rem]' : 'lg:grid-cols-[minmax(0,1fr)] max-w-[58rem]',
+      ]}
+    >
     <article class="post-board min-w-0" data-pagefind-body>
       <div class="post-board-inner">
         <!-- 标题已经在头图上了；这里给 Pagefind 一个稳的标题来源 -->
@@ -107,6 +117,6 @@ const bannerSubtitle = [dateText, stats ? `${stats.chars} 字` : null, stats ? `
         }
       </div>
     </article>
-    <Toc headings={headings} />
+    {hasToc && <Toc headings={headings} />}
   </div>
 </BaseLayout>
