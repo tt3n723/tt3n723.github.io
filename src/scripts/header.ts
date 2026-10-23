@@ -33,12 +33,16 @@ export function initHeader() {
 
   // ---------- 1. 浮层 ----------
   const triggers = Array.from(header.querySelectorAll<HTMLElement>('[data-panel-trigger]'));
-  const panelFor = (name: string) =>
-    header.querySelector<HTMLElement>(`#panel-${name}`) ??
-    header.querySelector<HTMLElement>(`.mobile-scrim[data-panel="${name}"]`);
-
+  // closeAll 每次重新查询 DOM：客户端路由切换后 <header> 会被替换，
+  // 闭包捕获的旧引用会失效。
   const closeAll = (except?: string) => {
-    for (const trigger of triggers) {
+    const h = document.getElementById('site-header');
+    if (!h) return;
+    const trigs = Array.from(h.querySelectorAll<HTMLElement>('[data-panel-trigger]'));
+    const panelFor = (name: string) =>
+      h.querySelector<HTMLElement>(`#panel-${name}`) ??
+      h.querySelector<HTMLElement>(`.mobile-scrim[data-panel="${name}"]`);
+    for (const trigger of trigs) {
       const name = trigger.dataset.panelTrigger ?? '';
       const panel = panelFor(name);
       if (name === except) {
@@ -62,10 +66,6 @@ export function initHeader() {
   header.querySelectorAll<HTMLElement>('[data-panel-close]').forEach((b) => b.addEventListener('click', () => closeAll()));
   header.querySelectorAll<HTMLElement>('.mobile-scrim').forEach((s) => s.addEventListener('click', () => closeAll()));
   header.querySelectorAll<HTMLElement>('.float-panel').forEach((p) => p.addEventListener('click', (e) => e.stopPropagation()));
-  document.addEventListener('click', () => closeAll());
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') closeAll();
-  });
 
   // ---------- 2. 移动端下拉 ----------
   header.querySelectorAll<HTMLElement>('[data-dropdown-trigger]').forEach((button) => {
@@ -78,36 +78,52 @@ export function initHeader() {
   });
 
   // ---------- 3. 滚动 ----------
-  let lastY = window.scrollY;
-  let ticking = false;
-  const onScroll = () => {
-    const y = window.scrollY;
-    const delta = y - lastY;
+  // window/document 级监听器只挂一次：客户端路由切换会反复调用 initHeader，
+  // 旧的从不清理 → 导航 N 次后每帧滚动触发 N 个 rAF 回调，
+  // 读写交替导致 N-1 次 forced reflow（布局抖动）。
+  const w = window as unknown as { __headerBound?: boolean };
+  if (!w.__headerBound) {
+    w.__headerBound = true;
+    let lastY = window.scrollY;
+    let ticking = false;
+    const onScroll = () => {
+      const y = window.scrollY;
+      const delta = y - lastY;
+      const hd = document.getElementById('site-header');
+      if (hd) {
+        hd.classList.toggle('is-scrolled', y > 8);
 
-    header.classList.toggle('is-scrolled', y > 8);
+        // ⚠️ 这里**故意不关面板**。
+        // 之前做过"滚动就关闭音乐/主题面板"，但作者在拖色相滑杆时页面会轻微滚动，
+        // 结果面板当场关掉，体验很差。滚动与面板开合从此互不干涉。
 
-    // ⚠️ 这里**故意不关面板**。
-    // 之前做过"滚动就关闭音乐/主题面板"，但作者在拖色相滑杆时页面会轻微滚动，
-    // 结果面板当场关掉，体验很差。滚动与面板开合从此互不干涉。
-
-    // 隐藏要"走够距离"才触发，阈值太小会在触控板上抖
-    if (y > 200 && delta > 8) header.classList.add('is-hidden');
-    else if (delta < -8 || y <= 200) header.classList.remove('is-hidden');
-
-    lastY = y;
-    ticking = false;
-  };
-  window.addEventListener(
-    'scroll',
-    () => {
-      if (!ticking) {
-        ticking = true;
-        requestAnimationFrame(onScroll);
+        // 隐藏要"走够距离"才触发，阈值太小会在触控板上抖
+        if (y > 200 && delta > 8) hd.classList.add('is-hidden');
+        else if (delta < -8 || y <= 200) hd.classList.remove('is-hidden');
       }
-    },
-    { passive: true },
-  );
-  onScroll();
+      lastY = y;
+      ticking = false;
+    };
+    window.addEventListener(
+      'scroll',
+      () => {
+        if (!ticking) {
+          ticking = true;
+          requestAnimationFrame(onScroll);
+        }
+      },
+      { passive: true },
+    );
+    document.addEventListener('click', () => closeAll());
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') closeAll();
+    });
+  }
+  // 初始化时同步设置一次滚动状态（延迟到下一帧避免 forced reflow）
+  requestAnimationFrame(() => {
+    const hd = document.getElementById('site-header');
+    if (hd) hd.classList.toggle('is-scrolled', window.scrollY > 8);
+  });
 
   // ---------- 4. 设置项 ----------
   const hueRange = document.getElementById('hue-range') as HTMLInputElement | null;

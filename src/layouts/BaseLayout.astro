@@ -72,10 +72,11 @@ const {
 
 const ogImage = image ? new URL(image, SITE_URL).href : undefined;
 
+// 全站统一宽度：原来 default/wide/post 三种宽度不同，页面之间会「跳」。
 const containerClass = {
-  default: 'max-w-5xl',
-  wide: 'max-w-[100rem]',
-  post: 'max-w-[80rem]',
+  default: 'max-w-[72rem]',
+  wide: 'max-w-[72rem]',
+  post: 'max-w-[72rem]',
 }[width];
 const pageTitle = title ? `${title} | ${SITE_TITLE}` : SITE_TITLE;
 const canonical = new URL(Astro.url.pathname, SITE_URL).href;
@@ -204,6 +205,14 @@ const canonical = new URL(Astro.url.pathname, SITE_URL).href;
       // lastPath 防止同一页面被初始化两次（首次加载时两个时机都会到）。
       let lastPath = '';
 
+      function safe(fn: () => void, label: string) {
+        try {
+          fn();
+        } catch (e) {
+          console.error('[boot]', label, e);
+        }
+      }
+
       function boot() {
         if (location.pathname === lastPath) return;
         lastPath = location.pathname;
@@ -214,23 +223,23 @@ const canonical = new URL(Astro.url.pathname, SITE_URL).href;
         document.documentElement.classList.add('js');
 
         initTheme(); // 明暗一键切换的绑定
-        initHeader();
-        initCopyCode();
-        initTabs();
-        initToc();
-  initSw();
-        initMermaid();
-        initLqip();
-        initMusic();
-        initLightbox();
-        initReveal();
-        initBanner();
-        initArchive();
-        initSeriesNav();
-        initSearchModal();
-        initBackToTop();
-        initTyped();
-        initSakura();
+        safe(initHeader, 'initHeader');
+        safe(initCopyCode, 'initCopyCode');
+        safe(initTabs, 'initTabs');
+        safe(initToc, 'initToc');
+  safe(initSw, 'initSw');
+        safe(initMermaid, 'initMermaid');
+        safe(initLqip, 'initLqip');
+        safe(initMusic, 'initMusic');
+        safe(initLightbox, 'initLightbox');
+        safe(initReveal, 'initReveal');
+        safe(initBanner, 'initBanner');
+        safe(initArchive, 'initArchive');
+        safe(initSeriesNav, 'initSeriesNav');
+        safe(initSearchModal, 'initSearchModal');
+        safe(initBackToTop, 'initBackToTop');
+        safe(initTyped, 'initTyped');
+        safe(initSakura, 'initSakura');
         initFireworks(); // 默认不开（html.fireworks-off），设置面板里能打开
         initProgress(); // 顶部阅读进度条
       }

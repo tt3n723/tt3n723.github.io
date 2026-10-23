@@ -14,13 +14,15 @@ const VERSION = '__VERSION__';
 const CACHE = 'wizard-note-' + VERSION;
 
 // 装好就能用的东西（离线页本身必须在，否则断网时无处可去）
-const PRECACHE = ['/offline/', '/favicon.svg', '/apple-touch-icon.png'];
+// ⚠️ apple-touch-icon.png 不存在，addAll 是原子操作——一个 404 整批失败，
+//    /offline/ 和 /favicon.svg 也跟着没缓存。改用逐个 add，一个失败不影响其余。
+const PRECACHE = ['/offline/', '/favicon.svg'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches
       .open(CACHE)
-      .then((cache) => cache.addAll(PRECACHE).catch(() => undefined))
+      .then((cache) => Promise.allSettled(PRECACHE.map((url) => cache.add(url))))
       .then(() => self.skipWaiting()),
   );
 });

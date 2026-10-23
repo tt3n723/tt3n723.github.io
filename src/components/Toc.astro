@@ -37,10 +37,8 @@ for (const heading of headings) {
 
 {
   groups.length > 0 && (
-    <aside class="toc-aside">
-      <div class="toc-card">
-        <p class="toc-heading">目录</p>
-        <div class="toc-scroll">
+    <div class="toc-card">
+      <div class="toc-scroll">
           <div class="toc-content" data-toc-content>
             {groups.map((group, index) => (
               <div class="toc-group" data-toc-group>
@@ -70,8 +68,7 @@ for (const heading of headings) {
             ))}
             <div class="toc-indicator" data-toc-indicator aria-hidden="true" />
           </div>
-        </div>
       </div>
-    </aside>
+    </div>
   )
 }

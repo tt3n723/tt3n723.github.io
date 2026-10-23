@@ -11,7 +11,14 @@ export function initSeriesNav() {
       toggle.setAttribute('aria-expanded', String(open));
       content.style.maxHeight = open ? content.scrollHeight + 'px' : '0px';
     };
-    setOpen(root.dataset.open === 'true');
+    // 延迟到下一帧再读 scrollHeight：init 时 layout 已脏，同步读会触发 forced reflow。
+    // 初始收起的话不需要读几何属性，直接设 0 即可。
+    const initialOpen = root.dataset.open === 'true';
+    if (initialOpen) {
+      requestAnimationFrame(() => setOpen(true));
+    } else {
+      setOpen(false);
+    }
 
     toggle.addEventListener('click', () => {
       setOpen(root.dataset.open !== 'true');

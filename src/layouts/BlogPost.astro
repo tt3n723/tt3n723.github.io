@@ -72,14 +72,9 @@ const bannerSubtitle = [dateText, stats ? `${stats.chars} 字` : null, stats ? `
   preloadMath
 >
   <!-- 正文装进一块白板（和首页同款语言），目录留在板子外面 -->
-  <div
-      class:list={[
-        'mx-auto w-full lg:grid lg:gap-6 lg:px-3',
-        // 有目录：两列，右侧 15rem 放目录
-        // 没有目录：单列，并且收窄居中 —— 否则两千字的短文会横穿整个 108rem
-        hasToc ? 'lg:grid-cols-[minmax(0,1fr)_15rem] 2xl:max-w-[108rem]' : 'lg:grid-cols-[minmax(0,1fr)] max-w-[58rem]',
-      ]}
-    >
+  <!-- 正文始终在视口居中，不因有没有目录而左右跳。
+       目录改为按需显示（右下角浮动按钮 → 右侧抽屉），完全不占文档流。 -->
+  <div class="mx-auto w-full max-w-[72rem]">
     <article class="post-board min-w-0" data-pagefind-body>
       <div class="post-board-inner">
         <!-- 标题已经在头图上了；这里给 Pagefind 一个稳的标题来源 -->
@@ -117,6 +112,30 @@ const bannerSubtitle = [dateText, stats ? `${stats.chars} 字` : null, stats ? `
         }
       </div>
     </article>
-    {hasToc && <Toc headings={headings} />}
   </div>
+
+  {hasToc && (
+    <>
+      <!-- 目录遮罩 -->
+      <div class="toc-scrim" data-toc-scrim hidden></div>
+      <!-- 目录抽屉：右侧滑入 -->
+      <aside class="toc-drawer" data-toc-drawer hidden aria-label="目录">
+        <div class="toc-drawer-head">
+          <span>目录</span>
+          <button type="button" class="toc-drawer-close" data-toc-close aria-label="关闭目录">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+              <path d="M18 6 6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <Toc headings={headings} />
+      </aside>
+      <!-- 触发按钮：固定在右下角，回到顶部按钮上方 -->
+      <button type="button" class="toc-trigger" data-toc-trigger aria-label="打开目录" title="目录">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 6h16M4 12h16M4 18h10" />
+        </svg>
+      </button>
+    </>
+  )}
 </BaseLayout>

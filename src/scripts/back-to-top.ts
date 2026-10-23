@@ -19,7 +19,8 @@ export function initBackToTop() {
     },
     { passive: true },
   );
-  update();
+  // 延迟到下一帧再读 scrollY：init 时 layout 可能还是脏的，同步读会触发 forced reflow。
+  requestAnimationFrame(update);
 
   button.addEventListener('click', () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });

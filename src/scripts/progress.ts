@@ -24,5 +24,7 @@ export function initProgress() {
     }, { passive: true });
     window.addEventListener('resize', update, { passive: true });
   }
-  update();
+  // 延迟到下一帧再读几何属性：init 时前面一堆 init 已经把 layout 改脏了，
+  // 在 5 万节点的文章页上同步读 scrollHeight / scrollY 会触发 forced reflow。
+  requestAnimationFrame(update);
 }

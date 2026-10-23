@@ -172,7 +172,7 @@ html.dark .board {
   box-shadow: 0 12px 15px 0 rgba(0, 0, 0, 0.5), 0 17px 50px 0 rgba(0, 0, 0, 0.4);
 }
 .board-inner {
-  max-width: 54rem;
+  max-width: none;
   margin: 0 auto;
   padding: 0 2rem;
 }
@@ -838,13 +838,11 @@ html.dark .board {
   min-width: 0;
 }
 .toc-card {
-  position: sticky;
-  top: 5.2rem;
-  padding: 0.9rem 0.55rem 0.7rem;
-  border: 1px solid var(--line);
-  border-radius: 1rem;
-  background: var(--surface);
-  box-shadow: var(--shadow-card);
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 /* 「目录」就是普通小字。以前是 uppercase + 0.12em 字距，像生成器的标签。 */
 .toc-heading {
@@ -861,19 +859,16 @@ html.dark .board {
    要让卡片底 < 按钮顶：max-height ≤ 100vh − 4rem − 5.2rem − 60px − 安全间隙(31px)
    → 100vh − 14rem，留出的间隙恒为 31px，和视口高度无关。 */
 .toc-scroll {
-  max-height: calc(100vh - 14rem);
+  max-height: calc(100vh - 8rem);
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior: contain;
-  scrollbar-width: thin;
+  scrollbar-width: none;
 }
 .toc-scroll::-webkit-scrollbar {
-  width: 8px;
+  display: none;
 }
-.toc-scroll::-webkit-scrollbar-thumb {
-  border-radius: 9999px;
-  background: color-mix(in srgb, var(--muted) 30%, transparent);
-}
+
 .toc-content {
   position: relative;
 }
@@ -1165,6 +1160,7 @@ pre {
 pre.astro-code {
   content-visibility: auto;
   contain-intrinsic-size: auto 220px;
+  contain: layout style paint;
 }
 /* 折叠块内部不要再跳一次：外层已经跳过，内层若再设会把收起态撑高 */
 .fold-code .code-block {
@@ -1907,7 +1903,6 @@ html.dark .post-board {
   background: color-mix(in oklch, var(--surface) 88%, transparent);
   color: var(--muted);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.14);
-  backdrop-filter: blur(10px);
   cursor: pointer;
   transition: color 0.15s, transform 0.15s, border-color 0.15s;
 }
@@ -1929,11 +1924,11 @@ html.dark .post-board {
    ============================================================ */
 /* 文章列表：网格模式 */
 html[data-post-layout='grid'] .board-inner {
-  max-width: 76rem;
+  max-width: none;
 }
 html[data-post-layout='grid'] .post-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
   gap: 1.5rem;
 }
 html[data-post-layout='grid'] .index-card {
@@ -2605,4 +2600,109 @@ html.sakura-off .sakura-canvas {
   border-color: transparent;
   background: var(--accent);
   color: var(--accent-fg);
+}
+
+/* ============================================================
+   目录抽屉（右侧滑入）+ 触发按钮
+   ------------------------------------------------------------
+   目录不再常驻在正文右侧：窄屏会溢出产生横向滚动条，正文还得让出一栏宽度。
+   现在改成按需抽屉，正文能撑满全宽。
+   ============================================================ */
+
+/* 触发按钮：固定在右下角，在「回到顶部」上方 */
+.toc-trigger {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 4.75rem;
+  z-index: 55;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--line);
+  border-radius: 9999px;
+  background: color-mix(in oklch, var(--surface) 88%, transparent);
+  color: var(--muted);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.14);
+  cursor: pointer;
+  transition: color 0.15s, transform 0.15s, border-color 0.15s;
+}
+.toc-trigger[hidden] {
+  display: none;
+}
+.toc-trigger:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+.toc-trigger svg {
+  width: 1.3rem;
+  height: 1.3rem;
+}
+
+/* 遮罩 */
+.toc-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgba(0, 0, 0, 0.5);
+}
+.toc-scrim[hidden] {
+  display: none;
+}
+
+/* 抽屉本体：右侧贴边、无圆角 */
+.toc-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 90;
+  width: min(78vw, 20rem);
+  padding: 1.25rem 0.75rem;
+  border-radius: 0;
+  background: var(--surface);
+  box-shadow: -8px 0 24px rgba(0, 0, 0, 0.2);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  animation: drawer-in 0.28s ease;
+}
+.toc-drawer[hidden] {
+  display: none;
+}
+
+/* 抽屉头部 */
+.toc-drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--fg);
+}
+.toc-drawer-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.15s, background-color 0.15s;
+}
+.toc-drawer-close:hover {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+.toc-drawer-close svg {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+body.toc-drawer-open {
+  overflow: hidden;
 }
