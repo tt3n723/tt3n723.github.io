@@ -41,7 +41,13 @@ function cacheFirst(request) {
     cache.match(request).then((hit) => {
       if (hit) return hit;
       return fetch(request).then((res) => {
-        if (res && res.ok) cache.put(request, res.clone());
+        // ⚠️ 只缓存**完整的 200**。res.ok 对 200~299 都为真，**包括 206**，
+        //    而 cache.put 遇到 206（Range 请求的部分响应）会直接抛 TypeError：
+        //    "Partial response (status code 206) is unsupported"
+        //    视频/音频元素会发 Range 请求，所以这里必须精确判断 200。
+        if (res && res.status === 200) {
+          cache.put(request, res.clone()).catch(() => undefined);
+        }
         return res;
       });
     }),
@@ -51,6 +57,10 @@ function cacheFirst(request) {
 self.addEventListener('fetch', (event) => {
   const request = event.request;
   if (request.method !== 'GET') return;
+  // ⚠️ 带 Range 头的请求一律不碰：那是视频/音频在要片段，
+  //    响应是 206，Cache API 存不了（会抛 "Partial response is unsupported"）。
+  //    交给浏览器原生处理，媒体本来也不适合塞进 Cache Storage。
+  if (request.headers.has('range')) return;
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
@@ -76,7 +86,7 @@ self.addEventListener('fetch', (event) => {
         const hit = await cache.match(request);
         const network = fetch(request)
           .then((res) => {
-            if (res && res.ok) cache.put(request, res.clone());
+            if (res && res.status === 200) cache.put(request, res.clone()).catch(() => undefined);
             return res;
           })
           .catch(() => null);

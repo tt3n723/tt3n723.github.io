@@ -83,7 +83,7 @@ const canonical = new URL(Astro.url.pathname, SITE_URL).href;
 ---
 
 <!doctype html>
-<html lang="zh-CN" style={`--hue: ${SITE_HUE}`}>
+<html lang="zh-CN" style={`--hue: ${SITE_HUE}`} transition:animate="none">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -104,9 +104,9 @@ const canonical = new URL(Astro.url.pathname, SITE_URL).href;
         </>
       )
     }
-    {/* 预加载：等当前页 load 完、浏览器空闲了才去取其他页，不抢首屏带宽。
-    作者要的「进来先看首页，其他后台下载」就是这个行为。 */}
-<ClientRouter prefetch={{ prefetchAll: true, defaultStrategy: 'load' }} />
+    {/* 预加载交给 src/scripts/prefetch.ts 自己管 —— Astro 的预加载不暴露 fetch priority，
+    没法表达"后台慢慢下，但我要点的那个优先"。 */}
+<ClientRouter prefetch={false} />
     {noindex && <meta name="robots" content="noindex, nofollow" />}
 
     <!-- 分享卡片。宽度高度按站内封面统一 16:9 的比例给，
@@ -196,6 +196,7 @@ const canonical = new URL(Astro.url.pathname, SITE_URL).href;
       import { initSakura } from '../scripts/sakura';
       import { initFireworks } from '../scripts/fireworks';
       import { initProgress } from '../scripts/progress';
+      import { initPrefetch } from '../scripts/prefetch';
       import { initSw } from '../scripts/sw';
 
       // 用 astro:page-load 统一驱动：
@@ -213,6 +214,11 @@ const canonical = new URL(Astro.url.pathname, SITE_URL).href;
         }
       }
 
+      function idle(fn: () => void) {
+        if ('requestIdleCallback' in window) requestIdleCallback(() => fn(), { timeout: 1500 });
+        else setTimeout(fn, 1);
+      }
+
       function boot() {
         if (location.pathname === lastPath) return;
         lastPath = location.pathname;
@@ -224,7 +230,9 @@ const canonical = new URL(Astro.url.pathname, SITE_URL).href;
 
         initTheme(); // 明暗一键切换的绑定
         safe(initHeader, 'initHeader');
-        safe(initCopyCode, 'initCopyCode');
+        // initCopyCode 要给每个代码块插头部和复制按钮 —— boot 里最重的一项（最多 87 个代码块）。
+        // 挪到浏览器空闲时再做：正文先显示出来，复制按钮晚几十毫秒出现。
+        idle(() => safe(initCopyCode, 'initCopyCode'));
         safe(initTabs, 'initTabs');
         safe(initToc, 'initToc');
   safe(initSw, 'initSw');
@@ -240,6 +248,7 @@ const canonical = new URL(Astro.url.pathname, SITE_URL).href;
         safe(initBackToTop, 'initBackToTop');
         safe(initTyped, 'initTyped');
         safe(initSakura, 'initSakura');
+        safe(initPrefetch, 'initPrefetch');
         initFireworks(); // 默认不开（html.fireworks-off），设置面板里能打开
         initProgress(); // 顶部阅读进度条
       }
