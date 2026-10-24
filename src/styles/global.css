@@ -1157,10 +1157,13 @@ pre {
   contain-intrinsic-size: auto 53px;
 }
 /* 非折叠的代码块（CSES 之外的散文里的代码）高度不定，给个经验值兜底 */
+/* ⚠️ 这里**不能**用 content-visibility，也不能带 style containment。
+   style containment 会把 CSS 计数器隔离到每一行内部，
+   于是 counter-increment 每行都从 0 加到 1 —— 代码行号全部显示成 1。
+   （外层的 .md-section / .fold-code 已经有 content-visibility 了，
+     屏幕外的代码块本来就会被跳过，这里再来一次是重复的。） */
 pre.astro-code {
-  content-visibility: auto;
-  contain-intrinsic-size: auto 220px;
-  contain: layout style paint;
+  contain: layout paint;
 }
 /* 折叠块内部不要再跳一次：外层已经跳过，内层若再设会把收起态撑高 */
 .fold-code .code-block {
@@ -1221,13 +1224,20 @@ pre.astro-code {
   margin: 0;
   padding: 0.9rem 1rem;
   background: transparent !important;
-  font-size: calc(0.875rem * var(--code-scale, 1));
+  /* --code-scale 是全局的字号设置；--code-fit 是「这一块代码太长、自动缩一点」，
+     由 copy-code.ts 量完 scrollWidth 后写在 <pre> 上。 */
+  font-size: calc(0.875rem * var(--code-scale, 1) * var(--code-fit, 1));
   overflow-x: auto;
 }
+/* 展开状态**不限高**。
+   原来写的是 max-height: 500rem（≈9,500px），配合 overflow-x: auto 会让
+   overflow-y 自动变成 auto —— 代码块一旦超过 9500px（约 395 行）就冒出竖向滚动条。
+   改成 max-height: none + overflow-y: hidden：竖向永远不出滚动条，横向照旧可滚。 */
 .code-block > pre.astro-code {
-  max-height: 500rem;
+  max-height: none;
+  overflow-y: hidden;
   opacity: 1;
-  transition: max-height 0.15s ease, opacity 0.15s ease, padding 0.15s ease;
+  transition: opacity 0.15s ease, padding 0.15s ease;
 }
 .code-block.is-collapsed > pre.astro-code {
   max-height: 0;
@@ -2194,7 +2204,6 @@ body.search-open {
   .code-block > pre.astro-code {
     max-height: none !important;
     opacity: 1 !important;
-    overflow: visible !important;
   }
   .code-block,
   .fold,

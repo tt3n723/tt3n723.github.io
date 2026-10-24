@@ -41,6 +41,27 @@ function makeCopyButton(pre: HTMLPreElement) {
   return button;
 }
 
+
+/*
+ * 长行放不下时把这一块的字号按比例缩小，让它塞进容器 —— 不用折行（会破坏代码形状），
+ * 也不用横向滚动条（要拖）。
+ *
+ * 只量一次就够了：scrollWidth 和字号近似成正比，所以 需要比例 = clientWidth / scrollWidth，
+ * 不用循环试缩（那会在 5 万节点的页面上反复强制重排）。
+ *
+ * 缩到 62% 还放不下就放弃 —— 保持可读比「绝不滚动」重要，剩下的交给 overflow-x: auto。
+ */
+const MIN_CODE_FIT = 0.62;
+function fitLongestLine(pre: HTMLPreElement) {
+  // 收起状态下 clientWidth 是 0，量不出东西
+  if (!pre.clientWidth) return;
+  pre.style.removeProperty('--code-fit');
+  const need = pre.scrollWidth - pre.clientWidth;
+  if (need <= 1) return;
+  const scale = (pre.clientWidth / pre.scrollWidth) * 0.995;
+  if (!Number.isFinite(scale) || scale >= 1) return;
+  pre.style.setProperty('--code-fit', Math.max(MIN_CODE_FIT, scale).toFixed(3));
+}
 export function initCopyCode() {
   const blocks = Array.from(document.querySelectorAll<HTMLPreElement>('pre.astro-code'));
 
@@ -89,6 +110,8 @@ export function initCopyCode() {
       wrapper.classList.toggle('is-collapsed', collapsed);
       head.setAttribute('aria-expanded', String(!collapsed));
       head.title = collapsed ? '点击展开' : '点击收起';
+      // 展开后再量：收起时 clientWidth 是 0
+      if (!collapsed) requestAnimationFrame(() => fitLongestLine(pre));
     };
     setCollapsed(collapsedByDefault);
 
@@ -101,5 +124,9 @@ export function initCopyCode() {
     });
 
     wrapper.append(head, pre);
+    // 默认展开的块：等浏览器排完版再量
+    if (!wrapper.classList.contains('is-collapsed')) {
+      requestAnimationFrame(() => fitLongestLine(pre));
+    }
   }
 }
